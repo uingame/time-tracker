@@ -1,0 +1,31 @@
+{
+  "presets": [
+    [
+      "env",
+      {
+        "modules": false
+      }
+    ],
+    "stage-0",
+    "react"
+  ],
+  "plugins": [
+    "material-ui",
+    "transform-class-properties",
+    "autobind-class-methods"
+  ],
+  "env": {
+    "production": {
+      "plugins": [["emotion", {
+        "extractStatic": true,
+        "outputDir": "_build"
+      }]]
+    },
+    "development": {
+      "plugins": [
+        "react-hot-loader/babel",
+        ["emotion", { "sourceMap": true }]
+      ]
+    }
+  }
+}
