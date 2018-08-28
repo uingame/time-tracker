@@ -10,6 +10,7 @@ import Paper from '@material-ui/core/Paper';
 
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
+import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
@@ -28,7 +29,8 @@ const styles = theme => ({
   },
   cell: {
     fontSize: '1.25rem',
-    textAlign: 'right'
+    textAlign: 'right',
+    padding: theme.spacing.unit * 1.5
   },
   input: {
     fontSize: '1.25rem'
@@ -127,18 +129,18 @@ function SimpleTable(props) {
                   <TableCell className={classes.cell}>{row.weekDayString}</TableCell>
                   <TableCell className={classes.cell} numeric>{!row.edit ? row.startTime : (
                     <FormControl>
-                      <Input className={classes.input} value={row.startTime} />
+                      <TextField type='time' className={classes.input} value={row.startTime} />
                     </FormControl>
                   )}</TableCell>
                   <TableCell className={classes.cell} numeric>{!row.edit ? row.endTime : (
                     <FormControl>
-                      <Input className={classes.input} value={row.endTime} />
+                      <TextField type='time' className={classes.input} value={row.endTime} />
                     </FormControl>
                   )}
                   </TableCell>
                   <TableCell className={classes.cell} numeric>{!row.edit ? row.duration : (
                     <FormControl>
-                      <Input className={classes.input} value={row.duration} />
+                      <TextField type='number' className={classes.input} value={row.duration} />
                     </FormControl>
                   )}
                   </TableCell>
