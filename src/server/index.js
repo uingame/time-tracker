@@ -3,7 +3,6 @@ const fallback = require('express-history-api-fallback')
 const bodyParser = require('body-parser')
 const config = require('./config')
 const auth = require('./auth/router')
-const {UserError} = require('./common').errors
 
 const app = express()
 
@@ -31,11 +30,7 @@ apiRouter.use((req, res, next) => {
 //general error handler
 apiRouter.use((err, req, res, next) => {
   console.error(err)
-  if (err instanceof UserError) {
-    res.status(400).json({error: err.message})
-  } else {
-    res.status(500).json({error: 'Internal Server Error'})
-  }
+  res.status(500).json({error: 'Internal Server Error'})
 })
 
 app.use('/api', apiRouter)

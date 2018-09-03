@@ -3,7 +3,6 @@ module.exports = {
   port: process.env.PORT || 3000,
 
   jwtSecret: process.env.JWT_SECRET || 'jwtsecret',
-  jwtIssuer: process.env.JWT_ISSUER || 'auth',
-  jwtAudience: process.env.JWT_AUDIENCE || 'web-app',
+  jwtIssuer: process.env.JWT_ISSUER || 'uingame',
   jwtExpiration: process.env.JWT_EXPIRATION || '30 days'
 }
