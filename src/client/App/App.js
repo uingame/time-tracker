@@ -6,6 +6,7 @@ import AppShell from './AppShell'
 import {StylesProvider} from './styles'
 import {TimeTracking} from '../TimeTracking'
 import {ClientsReport, UsersReport, TimeReport} from '../Reports'
+import {Settings} from '../Settings'
 
 const App = () => (
   <StylesProvider>
@@ -17,6 +18,7 @@ const App = () => (
           <Route path="/usersreport" component={UsersReport} />
           <Route path="/timereport" component={TimeReport} />
           <Route path="/timetracking" component={TimeTracking} />
+          <Route path="/settings" component={Settings} />
         </Switch>
       </AppShell>
     </Router>
