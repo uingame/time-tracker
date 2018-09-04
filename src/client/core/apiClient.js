@@ -34,13 +34,12 @@ function errorHandler(err) {
 }
 
 export default {
-  authenticate(email, password) {
-    return client.post('/auth/token', { email, password })
+  authenticate(username, password) {
+    return client.post('/auth/token', { username, password })
       .then(({data}) => {
         setToken(data.token)
         return {
-          username: data.username,
-          email: data.email
+          username: data.username
         }
       })
       .catch(errorHandler)

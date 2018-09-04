@@ -25,7 +25,7 @@ class PostBuildPlugin {
 }
 
 const common = {
-  entry: path.join(paths.src, 'index.js'),
+  entry: ['@babel/polyfill', path.join(paths.src, 'index.js')],
   output: {
     filename: 'bundle.js',
     path: paths.dist
@@ -58,10 +58,7 @@ const common = {
 
 const development = {
   mode: 'development',
-  entry: [
-    'react-hot-loader/patch',
-    paths.src,
-  ],
+  entry: ['react-hot-loader/patch'],
   devtool: 'source-map',
   devServer: {
     hot: true,
@@ -131,3 +128,5 @@ const production = {
 module.exports = NODE_ENV === 'development' ?
   merge(common, development) :
   merge(common, production)
+
+console.log(module.exports)

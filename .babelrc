@@ -10,7 +10,6 @@
     "react"
   ],
   "plugins": [
-    "material-ui",
     "transform-class-properties",
     "autobind-class-methods"
   ],

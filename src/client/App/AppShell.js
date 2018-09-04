@@ -1,18 +1,20 @@
 import React from 'react'
-import styled from 'react-emotion'
+import withStyles from '@material-ui/core/styles/withStyles';
 import Header from './Header'
 
-const Container = styled.div`
-  margin: 10
-`
+const styles = {
+  root: {
+    margin: 10
+  }
+}
 
-const AppShell = ({children}) => (
-  <Container>
+const AppShell = ({classes, children}) => (
+  <div className={classes.root}>
     <Header />
     <main>
       {children}
     </main>
-  </Container>
+  </div>
 )
 
-export default AppShell
+export default withStyles(styles)(AppShell)

@@ -8,6 +8,9 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import SettingsIcon from '@material-ui/icons/Settings'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem';
+import Divider from '@material-ui/core/Divider';
 
 const styles = {
   root: {
@@ -44,6 +47,14 @@ const NavLink = ({ to, children, className, activeClassName, ...rest }) => (
   />
 )
 
+const NavMenuItem = ({to, children, onClick}) => (
+  <MenuItem onClick={onClick}>
+    <NavLink to={to} style={{ textDecoration: 'none', color: 'inherit' }}>
+      {isActive => children}
+    </NavLink>
+  </MenuItem>
+)
+
 const NavButton = ({to, children}) => (
   <NavLink to={to} style={{ textDecoration: 'none', color: 'inherit' }}>
     {isActive => <Button color="inherit" variant={isActive ? 'outlined' : 'text'} style={{borderColor: 'red'}}>{children}</Button>}
@@ -56,31 +67,71 @@ const NavIcon = ({to, children}) => (
   </NavLink>
 )
 
-function ButtonAppBar(props) {
-  const { classes, history: { push} } = props;
-  return (
-    <div className={classes.root}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="title" color="inherit" className={classes.flex}>
-            שמיר ייעוץ והדרכות
-          </Typography>
-          <NavButton to='/clientsreport'>דוח לקוחות</NavButton>
-          <NavButton  to='/usersreport'>דוח עובדים</NavButton>
-          <NavButton  to='/timereport'>דוח מפורט</NavButton>
-          <NavIcon to='/settings'>
-            <SettingsIcon style={{color: 'inherit'}}/>
-          </NavIcon>
-          {/* <NavButton  to='/timetracking'>דיווח שעות</NavButton> */}
-          <NavButton  to='/login'>יציאה</NavButton>
-        </Toolbar>
-      </AppBar>
-    </div>
-  );
+class AppHeader extends React.Component {
+
+  state = {
+    anchorEl: null
+  }
+
+  static propTypes = {
+    classes: PropTypes.object.isRequired,
+  };
+
+  handleMenu = event => {
+    this.setState({ anchorEl: event.currentTarget });
+  };
+
+  handleClose = () => {
+    this.setState({ anchorEl: null });
+  };
+
+  render() {
+    const {anchorEl} = this.state
+    const {classes} = this.props
+    return (
+      <div className={classes.root}>
+        <AppBar position="static">
+          <Toolbar>
+            <Typography variant="title" color="inherit" className={classes.flex}>
+              שמיר ייעוץ והדרכות
+            </Typography>
+            <NavButton to='/clientsreport'>דוח לקוחות</NavButton>
+            <NavButton  to='/usersreport'>דוח עובדים</NavButton>
+            <NavButton  to='/timereport'>דוח מפורט</NavButton>
+            <NavButton  to='/timetracking'>דיווח שעות</NavButton>
+            <IconButton
+              aria-owns={open ? 'menu-appbar' : null}
+              aria-haspopup="true"
+              onClick={this.handleMenu}
+              color="inherit"
+              >
+              <SettingsIcon/>
+            </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={this.state.anchorEl}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={!!anchorEl}
+              onClose={this.handleClose}
+            >
+              <NavMenuItem to='/users' onClick={this.handleClose}>עובדים</NavMenuItem>
+              <NavMenuItem to='/clients' onClick={this.handleClose}>לקוחות</NavMenuItem>
+              <NavMenuItem to='/activities' onClick={this.handleClose}>פעילויות</NavMenuItem>
+              <Divider />
+              <NavMenuItem to='/login' onClick={this.handleClose}>יציאה</NavMenuItem>
+            </Menu>
+          </Toolbar>
+        </AppBar>
+      </div>
+    );
+  }
 }
 
-ButtonAppBar.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-export default withRouter(withStyles(styles)(ButtonAppBar));
+export default withRouter(withStyles(styles)(AppHeader));

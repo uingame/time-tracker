@@ -4,5 +4,7 @@ module.exports = {
 
   jwtSecret: process.env.JWT_SECRET || 'jwtsecret',
   jwtIssuer: process.env.JWT_ISSUER || 'uingame',
-  jwtExpiration: process.env.JWT_EXPIRATION || '30 days'
+  jwtExpiration: process.env.JWT_EXPIRATION || '30 days',
+
+  mongoUri: process.env.MONGO_URI || 'mongodb://localhost/time-tracker'
 }

@@ -3,42 +3,68 @@ const fallback = require('express-history-api-fallback')
 const bodyParser = require('body-parser')
 const config = require('./config')
 const auth = require('./auth/router')
+const mongoose = require('mongoose')
+const UserError = require('./common/UserError')
+
+const PUBLIC_FOLDER = 'dist'
+
+configureMongoose()
 
 const app = express()
-
-app.use(bodyParser.json())
 
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} [${req.connection.remoteAddress}] - ${req.method} ${req.protocol}://${req.hostname}${req.path}`)
   next()
 })
 
-const apiRouter = new express.Router()
+app.use('/api', createApiRouter())
 
-apiRouter.get('/test',
-  (req, res, next) => {
-    res.send({success: true})
-  }
-)
-
-apiRouter.use('/auth', auth)
-
-apiRouter.use((req, res, next) => {
-  res.status(404).json({error: 'Endpoint doesn\'t exist'})
-})
-
-//general error handler
-apiRouter.use((err, req, res, next) => {
-  console.error(err)
-  res.status(500).json({error: 'Internal Server Error'})
-})
-
-app.use('/api', apiRouter)
-
-const publicFolder = 'dist'
-app.use(express.static(publicFolder))
-app.use(fallback('index.html', { root: publicFolder }))
+app.use(express.static(PUBLIC_FOLDER))
+app.use(fallback('index.html', { root: PUBLIC_FOLDER }))
 
 app.listen(config.port, () => {
   console.log(`Listening on port ${config.port}...`)
 })
+
+function createApiRouter() {
+  const router = new express.Router()
+
+  router.use(bodyParser.json())
+
+  router.use('/auth', auth)
+
+  router.use('*', (req, res, next) => {
+    res.status(404).json({error: 'Endpoint doesn\'t exist'})
+  })
+
+  //general error handler
+  router.use((err, req, res, next) => {
+    if (err instanceof UserError) {
+      console.debug(err)
+      const ret = {
+        error: err.message
+      }
+      if (err.fields) {
+        ret.fields = err.fields
+      }
+      res.status(400).json(ret)
+    } else {
+      console.error(err)
+      res.status(500).json({error: 'Internal Server Error'})
+    }
+  })
+
+  return router
+}
+
+async function configureMongoose() {
+  await mongoose.connect(config.mongoUri, {
+    useNewUrlParser: true
+  })
+
+  const db = mongoose.connection;
+  db.on('error', console.error.bind(console, 'mongodb connection error:'));
+  db.once('open', () => {
+    console.log('mongodb connected successfully!')
+  });
+}

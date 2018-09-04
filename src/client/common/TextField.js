@@ -1,11 +1,38 @@
 import React from 'react'
-import {TextField as MuiTextField} from 'material-ui'
-import styled from 'react-emotion'
+import TextField from '@material-ui/core/TextField';
+import withStyles from '@material-ui/core/styles/withStyles';
 
-const TextField = ({label, ...otherProps}) => (
-  <MuiTextField hintText={label} {...otherProps} />
+const styles = theme => ({
+  textField: {
+    padding: theme.spacing.unit * 2,
+  },
+  label: {
+    left: 'unset',
+    direction: 'rtl',
+    transformOrigin: 'top right'
+  },
+  input: {
+    marginTop: 'unset !important'
+  },
+})
+
+const RtlTextField = ({name, label, value, onChange, error, fullWidth, disabled, classes}) => (
+  <TextField
+    className={classes.textField}
+    name={name}
+    label={label}
+    value={value}
+    onChange={onChange}
+    error={error}
+    fullWidth={fullWidth}
+    disabled={disabled}
+    InputLabelProps={{
+      className: classes.label,
+    }}
+    InputProps={{
+      className: classes.input,
+    }}
+  />
 )
 
-export default styled(TextField)`
-  margin-bottom: 15px;
-`
+export default withStyles(styles)(RtlTextField)
