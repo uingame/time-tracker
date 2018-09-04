@@ -128,5 +128,3 @@ const production = {
 module.exports = NODE_ENV === 'development' ?
   merge(common, development) :
   merge(common, production)
-
-console.log(module.exports)

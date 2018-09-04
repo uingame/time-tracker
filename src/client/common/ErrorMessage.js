@@ -1,9 +1,16 @@
 import React from 'react'
-import colors from './colors'
-import styled from 'react-emotion'
+import withStyles from '@material-ui/core/styles/withStyles';
 
-const ErrorMessage = styled.div`
-  color: ${colors.error};
-`
+const styles = {
+  root: {
+    color: 'red'
+  }
+}
 
-export default ErrorMessage
+const ErrorMessage = ({classes, children}) => (
+  <div className={classes.root}>
+    {children}
+  </div>
+)
+
+export default withStyles(styles)(ErrorMessage)

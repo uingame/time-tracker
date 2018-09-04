@@ -10,17 +10,16 @@ import ActivityIndicator from 'common/ActivityIndicator';
 
 const styles = theme => ({
   root: {
-    margin: '30%'
+    width: 300,
+    margin: 'auto',
+    marginTop: theme.spacing.unit * 5
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    paddingBottom: theme.spacing.unit * 2
-  },
-  title: {
-    padding: theme.spacing.unit * 2,
-  },
+    padding: theme.spacing.unit * 2
+  }
 })
 
 class LoginForm extends Component {
@@ -91,7 +90,7 @@ class LoginForm extends Component {
     return(
       <Paper className={classes.root}>
         <form className={classes.form} onSubmit={this.performLogin}>
-          <Typography className={classes.title} variant='title'>
+          <Typography variant='title'>
             התחברות
           </Typography>
           <TextField

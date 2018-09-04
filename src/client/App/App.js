@@ -1,5 +1,6 @@
 import React from 'react'
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom"
+import CssBaseline from '@material-ui/core/CssBaseline';
 
 // import {LoginForm} from 'Auth/components'
 import AppShell from './AppShell'
@@ -11,6 +12,7 @@ import {LoginForm} from '../Auth'
 
 const App = () => (
   <StylesProvider>
+    <CssBaseline />
     <Router>
       <AppShell>
         <Switch>

@@ -14,16 +14,9 @@
     "autobind-class-methods"
   ],
   "env": {
-    "production": {
-      "plugins": [["emotion", {
-        "extractStatic": true,
-        "outputDir": "_build"
-      }]]
-    },
     "development": {
       "plugins": [
-        "react-hot-loader/babel",
-        ["emotion", { "sourceMap": true }]
+        "react-hot-loader/babel"
       ]
     }
   }
