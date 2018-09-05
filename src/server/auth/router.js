@@ -5,6 +5,7 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const {Strategy: JwtStrategy, ExtractJwt} = require('passport-jwt')
 const UserError = require('../common/UserError')
+const usersLogic = require('../users/logic')
 
 const config = require('../config')
 
@@ -13,24 +14,24 @@ let router = Router()
 passport.use(new LocalStrategy({
   usernameField: 'username',
   passwordField: 'password'
-}, util.callbackify(getUserByEmailAndPassword)))
+}, util.callbackify(usersLogic.getUserByUsernameAndPassword)))
 
 passport.use(new JwtStrategy({
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: config.jwtSecret,
   issuer: config.jwtIssuer,
   algorithems: ['HS256']
-}, util.callbackify(getUserByJwtPayload)))
+}, util.callbackify(({userId}) => usersLogic.getUserById(userId))))
 
 
 router.post('/token',
   passport.authenticate('local', {session: false}),
   async (req, res) => {
-    const token = await createJsonWebToken(req.user.username)
+    const token = await createJsonWebToken(req.user._id)
     console.log(`token created for: ${req.user.username}`)
     res.json({
       token,
-      ...res.user
+      user: req.user
     })
   }
 )
@@ -46,28 +47,6 @@ const JWT_OPTIONS = {
   issuer: config.jwtIssuer,
   expiresIn: config.jwtExpiration
 }
-const createJsonWebToken = util.promisify((username, done) => jwt.sign({username}, config.jwtSecret, JWT_OPTIONS, done))
-
-async function getUserByEmailAndPassword(username, password) {
-  if (username === 'arik' && password === '1234') {
-    return {
-      username: 'arik',
-      isAdmin: true
-    }
-  }
-  throw new UserError('Incorrect username or password.')
-}
-
-async function getUserByJwtPayload({username}) {
-  if (username === 'arik') {
-    return {
-      username: 'arik',
-      isAdmin: true
-    }
-  }
-  throw new UserError('User not found.')
-}
-
-
+const createJsonWebToken = util.promisify((userId, done) => jwt.sign({userId}, config.jwtSecret, JWT_OPTIONS, done))
 
 module.exports = router

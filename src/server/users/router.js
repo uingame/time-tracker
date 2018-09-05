@@ -1,5 +1,6 @@
 const express = require('express')
 const logic = require('./logic')
+const {IsAuthenticated, IsAdmin} = require('../auth/middleware')
 
 const makeEndpoint = fn => async (req, res, next) => {
   try {
@@ -11,6 +12,9 @@ const makeEndpoint = fn => async (req, res, next) => {
 }
 
 const router = new express.Router()
+
+router.use(IsAuthenticated)
+router.use(IsAdmin)
 
 router.get('/', makeEndpoint(
   () => logic.getAllUsers()

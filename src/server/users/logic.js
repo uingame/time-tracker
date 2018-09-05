@@ -1,5 +1,5 @@
-const {hash} = require('bcrypt')
-const {mapValues} = require('lodash')
+const bcrypt = require('bcrypt')
+const {get, mapValues} = require('lodash')
 const Model = require('./model')
 const UserError = require('../common/UserError')
 
@@ -8,26 +8,27 @@ const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
 
 module.exports = {
 
-  getAllUsers: async function() {
+  async getAllUsers() {
     const users = await Model.find().ne('isArchived', true).exec()
     return users
   },
 
-  getUserById: async function(id) {
+  async getUserById(id) {
     const user = await Model.findById(id).exec()
     return user
   },
 
-  getUserByUsernameAndPassword: async function(username, password) {
-    const user = await Model.findOne({user})
-    .or([{username}, {email: username}])
-    .eq('password', password)
-    .exec()
-    return user
+  async getUserByUsernameAndPassword(username, password) {
+    const user = await Model.findOne()
+      .or([{username}, {email: username}])
+      .exec()
+
+    const isPasswordMatch = await bcrypt.compare(password, get(user, 'password', ''))
+    return isPasswordMatch ? user : undefined
   },
 
-  addUser: async function(newUser) {
-    const passwordHash = (!newUser.password) ? undefined : await hash(newUser.password, SALT_ROUNDS)
+  async addUser(newUser) {
+    const passwordHash = (!newUser.password) ? undefined : await bcrypt.hash(newUser.password, SALT_ROUNDS)
     try {
       const user = await Model.create({
         ...newUser,
@@ -47,7 +48,7 @@ module.exports = {
     }
   },
 
-  updateUser: async function(id, updatedFields) {
+  async updateUser(id, updatedFields) {
     const user = await model.findByIdAndUpdate(id, updatedFields, {
       lean: true,
       new: true,
@@ -56,7 +57,7 @@ module.exports = {
     return user;
   },
 
-  archiveUser: async function(id) {
+  async archiveUser(id) {
     const user = await model.findByIdAndUpdate(id, {isArchived: true}, {
       lean: true
     }).exec()
