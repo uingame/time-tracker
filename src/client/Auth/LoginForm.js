@@ -1,9 +1,11 @@
 import React, { Component } from 'react'
+import {Redirect} from "react-router-dom"
+import {get} from 'lodash'
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import ErrorMessage from 'common/ErrorMessage'
 import Typography from '@material-ui/core/Typography';
-import apiClient from 'core/apiClient'
+import {signIn, getSignedInUser} from './authService'
 import { withStyles } from '@material-ui/core';
 import TextField from 'common/TextField';
 import ActivityIndicator from 'common/ActivityIndicator';
@@ -29,7 +31,13 @@ class LoginForm extends Component {
     authenticating: false,
     usernameError: '',
     passwordError: '',
-    error: ''
+    error: '',
+    user: null
+  }
+
+  constructor(props) {
+    super(props)
+    this.state.user = getSignedInUser()
   }
 
   async performLogin(e) {
@@ -44,24 +52,16 @@ class LoginForm extends Component {
       authenticating: true,
     })
     try {
-      const user = await apiClient.authenticate(username, password)
+      const user = await signIn(username, password)
       this.setState({
-        authenticating: false
+        user
       })
-      console.log(user)
     } catch (error) {
       this.setState({
         authenticating: false,
         error: error.message
       })
     }
-  }
-
-  logout(e) {
-    e.preventDefault()
-    e.stopPropagation()
-
-    apiClient.forgetToken()
   }
 
   setPassword (event) {
@@ -85,13 +85,18 @@ class LoginForm extends Component {
   }
 
   render() {
-    const {classes} = this.props
-    const {username, password, usernameError, passwordError, authenticating, error} = this.state
+    const {classes, location} = this.props
+    const {username, password, usernameError, passwordError, authenticating, error, user} = this.state
+
+    if (user) {
+      return (<Redirect to={get(location, 'state.from', '/')}/>)
+    }
+
     return(
       <Paper className={classes.root}>
         <form className={classes.form} onSubmit={this.performLogin}>
           <Typography variant='title'>
-            התחברות
+            שמיר ייעוץ והדרכה
           </Typography>
           <TextField
             name='username'

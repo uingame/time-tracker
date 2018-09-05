@@ -11,6 +11,7 @@ import SettingsIcon from '@material-ui/icons/Settings'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem';
 import Divider from '@material-ui/core/Divider';
+import {authService} from 'Auth'
 
 const styles = {
   root: {
@@ -85,6 +86,11 @@ class AppHeader extends React.Component {
     this.setState({ anchorEl: null });
   };
 
+  signOut() {
+    authService.signOut()
+    this.props.history.push('/login')
+  }
+
   render() {
     const {anchorEl} = this.state
     const {classes} = this.props
@@ -125,7 +131,7 @@ class AppHeader extends React.Component {
               <NavMenuItem to='/clients' onClick={this.handleClose}>לקוחות</NavMenuItem>
               <NavMenuItem to='/activities' onClick={this.handleClose}>פעילויות</NavMenuItem>
               <Divider />
-              <NavMenuItem to='/login' onClick={this.handleClose}>יציאה</NavMenuItem>
+              <MenuItem onClick={this.signOut}>יציאה</MenuItem>
             </Menu>
           </Toolbar>
         </AppBar>

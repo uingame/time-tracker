@@ -1,6 +1,7 @@
 import React from 'react'
 import withStyles from '@material-ui/core/styles/withStyles';
 import Header from './Header'
+import {authService} from 'Auth'
 
 const styles = {
   root: {
@@ -10,7 +11,7 @@ const styles = {
 
 const AppShell = ({classes, children}) => (
   <div className={classes.root}>
-    <Header />
+    {authService.getSignedInUser() && <Header />}
     <main>
       {children}
     </main>
