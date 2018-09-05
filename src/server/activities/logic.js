@@ -1,7 +1,7 @@
 const Model = require('./model')
 
 export async function getAllActivities() {
-  const activities = await Model.find().exec()
+  const activities = await Model.find().ne('isArchived', true).exec()
   return activities
 }
 
@@ -27,9 +27,7 @@ export async function updateActivity(id, updatedFields) {
 
 export async function archiveActivity(id) {
   const activity = await model.findByIdAndUpdate(id, {isArchived: true}, {
-    lean: true,
-    new: true,
-    runValidators: true
+    lean: true
   }).exec()
   return true;
 }

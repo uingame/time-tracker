@@ -29,8 +29,8 @@ router.post('/token',
     const token = await createJsonWebToken(req.user.username)
     console.log(`token created for: ${req.user.username}`)
     res.json({
-      username: req.user.username,
-      token
+      token,
+      ...res.user
     })
   }
 )
@@ -38,9 +38,7 @@ router.post('/token',
 router.get('/user',
   passport.authenticate('jwt', {session: false}),
   (req, res, next) => {
-    res.json({
-      username: req.user.username
-    })
+    res.json(req.user)
   }
 )
 

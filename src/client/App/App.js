@@ -2,7 +2,6 @@ import React from 'react'
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom"
 import CssBaseline from '@material-ui/core/CssBaseline';
 
-// import {LoginForm} from 'Auth/components'
 import AppShell from './AppShell'
 import {StylesProvider} from './styles'
 import {TimeTracking} from '../TimeTracking'
