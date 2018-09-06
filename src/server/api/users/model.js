@@ -1,16 +1,16 @@
 const mongoose = require('mongoose')
 
 const schema = new mongoose.Schema({
-  username: {type: String, required: true, unique: true},
+  username: {type: String, required: true, unique: true, sparse: true},
   password: {type: String, required: true},
 
   isAdmin: {type: Boolean, default: false},
   firstName: {type: String, required: true},
   lastName: {type: String, required: true},
-  idNumber: {type: Number, required: true, unique: true},
+  idNumber: {type: Number, required: true, unique: true, sparse: true},
   address: {type: String, required: true},
   phone: {type: String, required: true},
-  email: {type: String, required: true, unique: true},
+  email: {type: String, required: true, unique: true, sparse: true},
   startDate: {type: String, required: true, default: getCurrentDateTimestamp},
 
   type: {type: String, enum: ['employee', 'contractor']},
