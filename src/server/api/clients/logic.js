@@ -6,29 +6,29 @@ const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
 
 module.exports = {
 
-  async getAllActivities() {
-    const activities = await Model.find().ne('isArchived', true).exec()
-    return activities
+  async getAllClients() {
+    const clients = await Model.find().ne('isArchived', true).exec()
+    return clients
   },
 
-  async getActivityById(id, includeSalaryOptions) {
-    const activity = await Model.findById(id).ne('isArchived', true).exec()
-    if (!activity) {
-      throw new UserError('Activity not found')
+  async getClientById(id) {
+    const client = await Model.findById(id).ne('isArchived', true).exec()
+    if (!client) {
+      throw new UserError('Client not found')
     }
-    return activity
+    return client
   },
 
-  async addActivity(newActivity) {
+  async addClient(newClient) {
     try {
-      const activity = await Model.create(newActivity)
-      return activity
+      const client = await Model.create(newClient)
+      return client
     } catch (err) {
       if (err.name === 'ValidationError') {
         throw new UserError(err._message, mapValues(err.errors, e => e.message))
       } else if (err.code === 11000) {
         const [_, key] = DUPLICATE_KEY_REG_EXP.exec(err.message)
-        throw new UserError('Activity creation failed', {
+        throw new UserError('Client creation failed', {
           [key]: 'already exists'
         })
       }
@@ -36,22 +36,22 @@ module.exports = {
     }
   },
 
-  async updateActivity(id, updatedFields) {
+  async updateClient(id, updatedFields) {
     try {
-      const activity = await Model.findByIdAndUpdate(id, updatedFields, {
+      const client = await Model.findByIdAndUpdate(id, updatedFields, {
         new: true,
         runValidators: true
       }).ne('isArchived', true).exec()
-      if (!activity) {
-        throw new UserError('Activity not found')
+      if (!client) {
+        throw new UserError('Client not found')
       }
-      return activity;
+      return client;
     } catch (err) {
       if (err.name === 'ValidationError') {
         throw new UserError(err._message, mapValues(err.errors, e => e.message))
       } else if (err.code === 11000) {
         const [_, key] = DUPLICATE_KEY_REG_EXP.exec(err.message)
-        throw new UserError('Activity update failed', {
+        throw new UserError('Client update failed', {
           [key]: 'already exists'
         })
       }
@@ -60,19 +60,19 @@ module.exports = {
 
   },
 
-  async archiveActivity(id) {
+  async archiveClient(id) {
     const update = {
       isArchived: true,
       $rename: {
         name: '_name'
       }
     }
-    const activity = await Model.findByIdAndUpdate(id, update, {
+    const client = await Model.findByIdAndUpdate(id, update, {
       lean: true
     })
       .ne('isArchived', true)
       .exec()
-    return {result: !!activity};
+    return {result: !!client};
   }
 
 }

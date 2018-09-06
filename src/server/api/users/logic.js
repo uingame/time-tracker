@@ -13,7 +13,7 @@ module.exports = {
     return users
   },
 
-  async getUserById(id, includeSalaryOptions) {
+  async getUserById(id) {
     const user = await Model.findById(id).ne('isArchived', true).exec()
     if (!user) {
       throw new UserError('User not found')
@@ -59,7 +59,10 @@ module.exports = {
       const user = await Model.findByIdAndUpdate(id, updatedFields, {
         new: true,
         runValidators: true
-      }).exec()
+      }).ne('isArchived', true).exec()
+      if (!user) {
+        throw new UserError('User not found')
+      }
       return user;
     } catch (err) {
       if (err.name === 'ValidationError') {

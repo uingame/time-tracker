@@ -9,6 +9,7 @@ const schema = new mongoose.Schema({
   lastName: {type: String, required: true},
   idNumber: {type: Number, required: true, unique: true},
   address: {type: String, required: true},
+  phone: {type: String, required: true},
   email: {type: String, required: true, unique: true},
   startDate: {type: String, required: true, default: getCurrentDateTimestamp},
 
