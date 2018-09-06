@@ -61,6 +61,8 @@ function createApiRouter() {
 
 async function configureMongoose() {
   mongoose.set('debug', true)
+  mongoose.set('useCreateIndex', true)
+  mongoose.set('useFindAndModify', false)
   await mongoose.connect(config.mongoUri, {
     useNewUrlParser: true
   })

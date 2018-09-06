@@ -24,4 +24,16 @@ router.post('/', makeEndpoint(
   ({body}) => logic.addUser(body)
 ))
 
+router.get('/:id', makeEndpoint(
+  ({params: {id}}) => logic.getUserById(id)
+))
+
+router.put('/:id', makeEndpoint(
+  ({params: {id}, body}) => logic.updateUser(id, body)
+))
+
+router.delete('/:id', makeEndpoint(
+  ({params: {id}}) => logic.archiveUser(id)
+))
+
 module.exports = router
