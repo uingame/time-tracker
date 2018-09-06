@@ -1,16 +1,7 @@
 const express = require('express')
 const logic = require('./logic')
 const {IsAuthenticated, IsAdmin} = require('../auth/middleware')
-
-const makeEndpoint = fn => async (req, res, next) => {
-  try {
-    const result = await fn(req, res)
-    res.json(result)
-  } catch(err) {
-    next(err)
-  }
-}
-
+const makeEndpoint = require('../common/makeEndpoint')
 const router = new express.Router()
 
 router.use(IsAuthenticated)
