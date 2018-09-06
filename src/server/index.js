@@ -1,12 +1,13 @@
+const fs = require('fs')
+const path = require('path')
 const express = require('express')
 const fallback = require('express-history-api-fallback')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const config = require('./config')
-const auth = require('./auth/router')
-const users = require('./users/router')
-const activities = require('./activities/router')
 const UserError = require('./common/UserError')
+
+const API_DIR = path.join(__dirname, 'api')
 
 const PUBLIC_FOLDER = 'dist'
 
@@ -33,9 +34,10 @@ function createApiRouter() {
 
   router.use(bodyParser.json())
 
-  router.use('/auth', auth)
-  router.use('/users', users)
-  router.use('/activities', activities)
+  fs.readdirSync(API_DIR).filter(dir => dir !== 'common').forEach(api => {
+    console.log(path.join(API_DIR, api, 'router.js'))
+    router.use(`/${api}`, require(path.join(API_DIR, api, 'router.js')))
+  })
 
   router.use('*', (req, res, next) => {
     res.status(404).json({error: 'Endpoint doesn\'t exist'})

@@ -1,30 +1,30 @@
 const express = require('express')
 const logic = require('./logic')
 const {IsAuthenticated, IsAdmin} = require('../auth/middleware')
-const makeEndpoint = require('../common/makeEndpoint')
+const makeEndpoint = require('../../common/makeEndpoint')
 const router = new express.Router()
 
 router.use(IsAuthenticated)
 router.use(IsAdmin)
 
 router.get('/', makeEndpoint(
-  () => logic.getAllActivities()
+  () => logic.getAllUsers()
 ))
 
 router.post('/', makeEndpoint(
-  ({body}) => logic.addActivity(body)
+  ({body}) => logic.addUser(body)
 ))
 
 router.get('/:id', makeEndpoint(
-  ({params: {id}}) => logic.getActivityById(id)
+  ({params: {id}}) => logic.getUserById(id)
 ))
 
 router.put('/:id', makeEndpoint(
-  ({params: {id}, body}) => logic.updateActivity(id, body)
+  ({params: {id}, body}) => logic.updateUser(id, body)
 ))
 
 router.delete('/:id', makeEndpoint(
-  ({params: {id}}) => logic.archiveActivity(id)
+  ({params: {id}}) => logic.archiveUser(id)
 ))
 
 module.exports = router

@@ -4,10 +4,9 @@ const jwt = require('jsonwebtoken')
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const {Strategy: JwtStrategy, ExtractJwt} = require('passport-jwt')
-const UserError = require('../common/UserError')
 const usersLogic = require('../users/logic')
 
-const config = require('../config')
+const config = require('../../config')
 
 let router = Router()
 
