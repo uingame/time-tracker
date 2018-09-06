@@ -35,7 +35,6 @@ function createApiRouter() {
   router.use(bodyParser.json())
 
   fs.readdirSync(API_DIR).filter(dir => dir !== 'common').forEach(api => {
-    console.log(path.join(API_DIR, api, 'router.js'))
     router.use(`/${api}`, require(path.join(API_DIR, api, 'router.js')))
   })
 
@@ -64,7 +63,6 @@ function createApiRouter() {
 }
 
 async function configureMongoose() {
-  mongoose.set('debug', true)
   mongoose.set('useCreateIndex', true)
   mongoose.set('useFindAndModify', false)
   await mongoose.connect(config.mongoUri, {
