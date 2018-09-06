@@ -22,7 +22,6 @@ const schema = new mongoose.Schema({
   isArchived: Boolean,
   isSystem: Boolean
 }, {
-  strict: true,
   toObject: {
     transform: (doc, ret) => {
       delete ret.__v

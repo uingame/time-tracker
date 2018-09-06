@@ -1,9 +1,15 @@
 const mongoose = require('mongoose')
 
 const schema = new mongoose.Schema({
-  name: String,
+  name: {type: String, required: true, unique: true},
   defaultHourlyQuote: Number,
   isArchived: Boolean
+}, {
+  toObject: {
+    transform: (doc, ret) => {
+      delete ret.__v
+    }
+  }
 })
 
-export default mongoose.model('Activity', schema);
+module.exports = mongoose.model('Activity', schema);

@@ -3,8 +3,9 @@ const fallback = require('express-history-api-fallback')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const config = require('./config')
-const users = require('./users/router')
 const auth = require('./auth/router')
+const users = require('./users/router')
+const activities = require('./activities/router')
 const UserError = require('./common/UserError')
 
 const PUBLIC_FOLDER = 'dist'
@@ -34,6 +35,7 @@ function createApiRouter() {
 
   router.use('/auth', auth)
   router.use('/users', users)
+  router.use('/activities', activities)
 
   router.use('*', (req, res, next) => {
     res.status(404).json({error: 'Endpoint doesn\'t exist'})

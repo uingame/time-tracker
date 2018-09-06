@@ -15,6 +15,9 @@ module.exports = {
 
   async getUserById(id, includeSalaryOptions) {
     const user = await Model.findById(id).ne('isArchived', true).exec()
+    if (!user) {
+      throw new UserError('User not found')
+    }
     return user
   },
 
