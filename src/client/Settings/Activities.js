@@ -1,21 +1,20 @@
 import React from 'react';
+import {isFunction, without} from 'lodash';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 
-import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
-import SaveIcon from '@material-ui/icons/Save'
+
+import ActivityIndicator from 'common/ActivityIndicator'
+
+import * as activitiesService from './activitiesService'
+
+import EditableTable from 'common/EditableTable'
+
+const NEW_PREFIX = 'new_'
 
 const styles = theme => ({
   root: {
@@ -39,7 +38,10 @@ const styles = theme => ({
     whiteSpace: 'nowrap'
   },
   input: {
-    fontSize: '1.25rem'
+    fontSize: '1.25rem',
+  },
+  fullWidth: {
+    width: '100%'
   },
   monthSelection: {
     marginTop: theme.spacing.unit * 1.5
@@ -49,75 +51,121 @@ const styles = theme => ({
   }
 });
 
-let id = 0;
-function createData(name, defaultHourlyQuote, notes) {
-  id += 1;
-  return {
-    id,
-    name,
-    defaultHourlyQuote,
-    notes
+let dummyIdCouter = 0
+
+class Activities extends React.Component {
+
+  static propTypes = {
+    classes: PropTypes.object.isRequired,
+  };
+
+  state = {
+    loading: true,
+    activities: []
+  }
+
+  constructor(props) {
+    super(props)
+    this.init()
+  }
+
+  async init() {
+    const activities = await activitiesService.getAllActivities()
+    this.setState({
+      activities,
+      loading: false
+    })
+  }
+
+  async deleteActivity(activity) {
+    if (this.isNew(activity)) {
+      this.setState({
+        activities: without(this.state.activities, activity)
+      })
+      return
+    }
+
+    const isDeleted = await activitiesService.deleteActivity(activity.id)
+  }
+
+  addNewActivity() {
+    this.setState({
+      activities: [
+        {
+          _id: NEW_PREFIX + (dummyIdCouter++),
+          name: '',
+          defaultHourlyQuote: 0,
+          notes: '',
+        },
+        ...this.state.activities
+      ],
+    })
+  }
+
+  async saveActivity(activity) {
+    const {_id, ...data} = activity
+    const updatedActivity = this.isNew(activity) ?
+      await activitiesService.addActivity(data) :
+      await activitiesService.updateActivity(_id, data)
+
+    return updatedActivity
+  }
+
+  isNew(activity) {
+    return activity._id.startsWith(NEW_PREFIX)
+  }
+
+  render() {
+    const {classes} = this.props;
+    const {loading, activities} = this.state
+
+    if (loading) {
+      return <ActivityIndicator />
+    }
+
+    return (
+      <div>
+        <Button onClick={this.addNewActivity} variant="contained" color="primary">
+          <AddIcon className={classes.newIcon}/>
+          פעילות חדשה
+        </Button>
+        <Paper className={classes.root}>
+          <EditableTable
+            headers={[{
+              id: 'name',
+              title: 'פעילות',
+              wide: true
+            }, {
+              id: 'defaultHourlyQuote',
+              title: 'מחיר שעתי',
+              type: 'number'
+            }, {
+              id: 'notes',
+              title: 'הערות',
+              wide: true,
+              multiline: true
+            }]}
+            data={activities}
+            isNew={this.isNew}
+            onSave={this.saveActivity}
+            onDelete={this.deleteActivity}
+          />
+        </Paper>
+      </div>
+    );
   }
 }
 
-const rows = [
-  createData('פעילות #1'),
-  createData('פעילות #2', 100),
-  createData('פעילות #3', 100),
-  createData('פעילות #4', 100),
-  createData('פעילות #5', 100, 'בלה בלה'),
-  createData('פעילות #6'),
-  createData('פעילות #7'),
-  createData('פעילות #8', 100),
-  createData('פעילות #9'),
-];
-
-function SimpleTable(props) {
-  const { classes } = props;
-
-  return (
-    <div>
-      <Button variant="contained" color="primary">
-        <AddIcon className={classes.newIcon}/>
-        פעילות חדשה
-      </Button>
-      <Paper className={classes.root}>
-        <Table className={classes.table}>
-          <TableHead>
-            <TableRow>
-              <TableCell className={classes.bigCell}>פעילות</TableCell>
-              <TableCell className={classes.smallCell} numeric>מחיר שעתי</TableCell>
-              <TableCell className={classes.bigCell}>הערות</TableCell>
-              <TableCell className={classes.smallCell}></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map(row => {
-              return (
-                <TableRow key={row.id}>
-                  <TableCell className={classes.bigCell} numeric>{row.name}</TableCell>
-                  <TableCell className={classes.smallCell} numeric>{row.defaultHourlyQuote}</TableCell>
-                  <TableCell className={classes.bigCell} numeric>{!row.edit ? row.notes : (
-                    <FormControl>
-                      <TextField className={classes.input} value={row.notes} />
-                    </FormControl>
-                  )}</TableCell>
-                  <TableCell className={classes.smallCell}>
-                    {(!row.edit) && <EditIcon /> }
-                    {row.edit && <SaveIcon /> }
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Paper>
-    </div>
-  );
+function replaceInArray(arr, predicate, newItem) {
+  return arr.map(item => {
+    if (!predicate(item)) {
+      return item
+    }
+    if (isFunction(newItem)) {
+      return newItem(item)
+    }
+    return newItem
+  })
 }
 
-SimpleTable.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(SimpleTable);
+export default withStyles(styles)(Activities);

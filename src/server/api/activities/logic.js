@@ -49,6 +49,8 @@ module.exports = {
     } catch (err) {
       if (err.name === 'ValidationError') {
         throw new UserError(err._message, mapValues(err.errors, e => e.message))
+      } else if (err.name === 'CastError') {
+        throw new UserError(`${err.path} must be a '${err.kind}'`, {[err.path]: `not a ${err.kind}`})
       } else if (err.code === 11000) {
         const [_, key] = DUPLICATE_KEY_REG_EXP.exec(err.message)
         throw new UserError('Activity update failed', {
