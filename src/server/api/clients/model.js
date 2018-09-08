@@ -1,16 +1,21 @@
 const mongoose = require('mongoose')
 
+const activitySchema = new mongoose.Schema({
+  activityId: {type: String, required: true},
+  hourlyQuote: Number
+}, {
+  _id: false
+})
+
 const schema = new mongoose.Schema({
   name: {type: String, required: true, unique: true, sparse: true},
   contactPersonName: String,
   address: String,
   email: String,
   phone: String,
+  notes: String,
 
-  activities: [{
-    activityId: {type: String, required: true},
-    hourlyQuote: Number
-  }],
+  activities: [activitySchema],
 
   isArchived: Boolean
 }, {
@@ -21,5 +26,6 @@ const schema = new mongoose.Schema({
     }
   }
 })
+
 
 module.exports = mongoose.model('Client', schema);

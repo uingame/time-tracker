@@ -6,7 +6,7 @@ import AppShell from './AppShell'
 import {StylesProvider} from './styles'
 import {TimeTracking} from '../TimeTracking'
 import {ClientsReport, UsersReport, TimeReport} from '../Reports'
-import {Settings, Activities} from '../Settings'
+import {Settings, Activities, Clients} from '../Settings'
 import {LoginForm, authService} from '../Auth'
 
 class App extends React.Component {
@@ -38,7 +38,7 @@ class App extends React.Component {
               <PrivateRoute adminOnly path="/timereport" component={TimeReport} />
               <PrivateRoute path="/timetracking" component={TimeTracking} />
               <PrivateRoute adminOnly path="/users" component={Settings} />
-              <PrivateRoute adminOnly path="/clients" component={TimeReport} />
+              <PrivateRoute adminOnly path="/clients" component={Clients} />
               <PrivateRoute adminOnly path="/activities" component={Activities} />
             </Switch>
           </AppShell>

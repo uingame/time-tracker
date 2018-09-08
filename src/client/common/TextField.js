@@ -16,22 +16,16 @@ const styles = theme => ({
   },
 })
 
-const RtlTextField = ({name, label, value, onChange, error, fullWidth, disabled, classes}) => (
+const RtlTextField = ({classes, ...rest}) => (
   <TextField
     className={classes.textField}
-    name={name}
-    label={label}
-    value={value}
-    onChange={onChange}
-    error={error}
-    fullWidth={fullWidth}
-    disabled={disabled}
     InputLabelProps={{
       className: classes.label,
     }}
     InputProps={{
       className: classes.input,
     }}
+    {...rest}
   />
 )
 
