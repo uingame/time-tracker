@@ -2,13 +2,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {get} from 'lodash'
 import Grid from '@material-ui/core/Grid'
-import { withStyles } from '@material-ui/core/styles';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import { Typography } from '@material-ui/core';
+import withStyles from '@material-ui/core/styles/withStyles';
+import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -21,55 +16,22 @@ import DeleteIcon from '@material-ui/icons/Delete'
 
 import TextField from 'common/TextField'
 import ActivityIndicator from 'common/ActivityIndicator'
+import MultipleSelection from 'common/MultipleSelection'
 
 import * as clientsService from './clientsService'
-import * as activitiesService from './activitiesService'
+
 
 const styles = theme => ({
-  cssLabel: {
-    left: 'unset',
-    direction: 'rtl',
-    transformOrigin: 'top right'
-  },
-  margin: {
-    // width: '100%',
-    padding: theme.spacing.unit * 2
-  },
-  formInput: {
-    marginTop: 'unset !important'
-  },
   title: {
     padding: theme.spacing.unit * 2,
-  },
-  selectIcon: {
-    left: 0,
-    right: 'unset'
-  },
-  selectText: {
-    paddingRight: 'unset',
-    paddingLeft: 32
   },
   table: {
     padding: theme.spacing.unit * 2
   },
   cell: {
     textAlign: 'right'
-  },
-  listItemText: {
-    textAlign: 'right'
   }
 })
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
 
 const EMPTY_CLIENT = {
   _id: '',
@@ -351,38 +313,14 @@ class Client extends React.PureComponent {
           </Typography>
         </Grid>
         <Grid item>
-          <FormControl disabled={saving} className={classes.margin} fullWidth={true}>
-            <InputLabel
-              FormLabelClasses={{
-                root: classes.cssLabel
-              }}
-              htmlFor="select-multiple-checkbox"
-            >
-              פעילויות
-            </InputLabel>
-            <Select
-              multiple
-              value={client.activities.map(x => x.activityId)}
-              onChange={this.updateActivities}
-              input={<Input
-                classes={{
-                  root: classes.formInput
-                }}
-                id="select-multiple-checkbox"
-              />}
-              MenuProps={MenuProps}
-              classes={{
-                icon: classes.selectIcon,
-                select: classes.selectText
-              }}
-            >
-              {activities.map(({_id, name}) => (
-                <MenuItem key={_id} value={_id}>
-                  {name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <MultipleSelection
+            label='פעילויות'
+            disabled={saving}
+            value={client.activities.map(x => x.activityId)}
+            onChange={this.updateActivities}
+            data={activities}
+            displayField='name'
+          />
         </Grid>
         <Grid item>
           <Table className={classes.table}>
