@@ -3,9 +3,9 @@ const path = require('path')
 const express = require('express')
 const fallback = require('express-history-api-fallback')
 const bodyParser = require('body-parser')
-const mongoose = require('mongoose')
 const config = require('./config')
 const UserError = require('./common/UserError')
+const {configureMongoose} = require('./mongoose')
 
 const API_DIR = path.join(__dirname, 'api')
 
@@ -60,19 +60,4 @@ function createApiRouter() {
   })
 
   return router
-}
-
-async function configureMongoose() {
-  mongoose.set('debug', true)
-  mongoose.set('useCreateIndex', true)
-  mongoose.set('useFindAndModify', false)
-  await mongoose.connect(config.mongoUri, {
-    useNewUrlParser: true
-  })
-
-  const db = mongoose.connection;
-  db.on('error', console.error.bind(console, 'mongodb connection error:'));
-  db.once('open', () => {
-    console.log('mongodb connected successfully!')
-  });
 }

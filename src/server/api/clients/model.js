@@ -11,7 +11,7 @@ const schema = new mongoose.Schema({
   name: {type: String, required: true, unique: true, sparse: true},
   contactPersonName: String,
   address: String,
-  email: String,
+  email: {type: mongoose.SchemaTypes.Email, allowBlank: true},
   phone: String,
   notes: String,
 
