@@ -4,10 +4,16 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 
 import AppShell from './AppShell'
 import {StylesProvider} from './styles'
-import {TimeTracking} from '../TimeTracking'
-import {ClientsReport, UsersReport, TimeReport} from '../Reports'
-import {Settings, Activities, Clients} from '../Settings'
-import {LoginForm, authService} from '../Auth'
+import TimeTracking from 'TimeTracking/TimeTracking'
+import ClientsReport from 'Reports/ClientsReport'
+import UsersReport from 'Reports/UsersReport'
+import TimeReport from 'Reports/TimeReport'
+import Settings from 'Settings/Settings'
+import Activities from 'Settings/Activities'
+import Clients from 'Settings/Clients'
+import LoginForm from 'Auth/LoginForm'
+
+import * as authService from 'core/authService'
 
 class App extends React.Component {
   constructor(props) {

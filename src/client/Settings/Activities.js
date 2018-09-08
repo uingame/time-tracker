@@ -10,7 +10,7 @@ import AddIcon from '@material-ui/icons/Add'
 
 import ActivityIndicator from 'common/ActivityIndicator'
 
-import * as activitiesService from './activitiesService'
+import * as activitiesService from 'core/activitiesService'
 
 import EditableTable from 'common/EditableTable'
 

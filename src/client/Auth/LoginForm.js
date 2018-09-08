@@ -5,8 +5,8 @@ import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import ErrorMessage from 'common/ErrorMessage'
 import Typography from '@material-ui/core/Typography';
-import {signIn, getSignedInUser} from './authService'
-import { withStyles } from '@material-ui/core';
+import {signIn, getSignedInUser} from 'core/authService'
+import withStyles from '@material-ui/core/styles/withStyles';
 import TextField from 'common/TextField';
 import ActivityIndicator from 'common/ActivityIndicator';
 

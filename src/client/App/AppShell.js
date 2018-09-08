@@ -1,7 +1,7 @@
 import React from 'react'
 import withStyles from '@material-ui/core/styles/withStyles';
 import Header from './Header'
-import {authService} from 'Auth'
+import * as authService from 'core/authService'
 
 const styles = {
   root: {

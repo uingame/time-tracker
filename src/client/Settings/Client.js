@@ -18,7 +18,7 @@ import TextField from 'common/TextField'
 import ActivityIndicator from 'common/ActivityIndicator'
 import MultipleSelection from 'common/MultipleSelection'
 
-import * as clientsService from './clientsService'
+import * as clientsService from 'core/clientsService'
 
 
 const styles = theme => ({

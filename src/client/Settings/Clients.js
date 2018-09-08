@@ -16,8 +16,8 @@ import ActivityIndicator from 'common/ActivityIndicator'
 
 import Client from './Client'
 
-import * as clientsService from './clientsService'
-import * as activitiesService from './activitiesService'
+import * as clientsService from 'core/clientsService'
+import * as activitiesService from 'core/activitiesService'
 
 const styles = theme => ({
   cssLabel: {

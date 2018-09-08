@@ -11,7 +11,8 @@ import SettingsIcon from '@material-ui/icons/Settings'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem';
 import Divider from '@material-ui/core/Divider';
-import {authService} from 'Auth'
+
+import * as authService from 'core/authService'
 
 const styles = {
   root: {
