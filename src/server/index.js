@@ -35,7 +35,10 @@ function createApiRouter() {
   router.use(bodyParser.json())
 
   fs.readdirSync(API_DIR).filter(dir => dir !== 'common').forEach(api => {
-    router.use(`/${api}`, require(path.join(API_DIR, api, 'router.js')))
+    const routerPath = path.join(API_DIR, api, 'router.js')
+    if (fs.existsSync(routerPath)) {
+      router.use(`/${api}`, require(routerPath))
+    }
   })
 
   router.use('*', (req, res, next) => {

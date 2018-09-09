@@ -101,7 +101,7 @@ module.exports = {
     })
       .ne('isArchived', true)
       .exec()
-    return {result: !!client};
+    return {success: !!client};
   }
 
 }
