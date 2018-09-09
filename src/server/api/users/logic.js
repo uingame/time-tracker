@@ -67,6 +67,13 @@ module.exports = {
     } catch (err) {
       if (err.name === 'ValidationError') {
         throw new UserError(err._message, mapValues(err.errors, e => e.message))
+      } else if (err.name === 'CastError') {
+        // if (err.kind === 'embedded' && err.path === 'activities') {
+        //   const errId = ACTIVITY_ID_REG_EXP.exec(err.value)[1]
+        //   const idx = updatedFields.activities.findIndex(({activityId}) => activityId === errId)
+        //   throw new UserError(`${err.reason.path} must be a '${err.reason.kind}'`, {[`${err.path}.${idx}.${err.reason.path}`]: `not a ${err.reason.kind}`})
+        // }
+        throw new UserError(`${err.path} must be a '${err.kind}'`, {[err.path]: `not a ${err.kind}`})
       } else if (err.code === 11000) {
         const [_, key] = DUPLICATE_KEY_REG_EXP.exec(err.message)
         throw new UserError('User update failed', {

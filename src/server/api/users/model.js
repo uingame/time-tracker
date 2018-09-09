@@ -1,5 +1,15 @@
 const mongoose = require('mongoose')
 
+const activitySchema = new mongoose.Schema({
+  clientId: {type: String, required: true},
+  activityId: {type: String, required: true},
+  type: {type: String, enum: ['employee', 'contractor']},
+  hourlyQuote: {type: Number, min: 0},
+  travelQuote: {type: Number, min: 0}
+}, {
+  _id: false
+})
+
 const schema = new mongoose.Schema({
   username: {type: String, required: true, unique: true, sparse: true},
   password: {type: String, required: true},
@@ -10,15 +20,15 @@ const schema = new mongoose.Schema({
   idNumber: {type: Number, required: true, unique: true, sparse: true},
   address: {type: String, required: true},
   phone: {type: String, required: true},
-  email: {type: String, required: true, unique: true, sparse: true},
-  startDate: {type: String, required: true, default: getCurrentDateTimestamp},
+  email: {type: mongoose.SchemaTypes.Email, required: true, unique: true, sparse: true},
+  startDate: {type: Date, required: true},
 
-  type: {type: String, enum: ['employee', 'contractor']},
+  type: {type: String, enum: ['employee', 'contractor'], required: true},
   lastReportDay: {type: Number, min: 1, max: 31},
   defaultHourlyQuote: {type: Number, min: 0, default: 0},
   defaultTravelQuote: {type: Number, min: 0, default: 0},
 
-  activities: [],
+  activities: [activitySchema],
 
   isArchived: Boolean,
   isSystem: Boolean
@@ -32,12 +42,3 @@ const schema = new mongoose.Schema({
 })
 
 module.exports = mongoose.model('User', schema);
-
-function getCurrentDateTimestamp() {
-  const d = new Date()
-  d.setUTCHours(0)
-  d.setUTCMinutes(0)
-  d.setUTCSeconds(0)
-  d.setUTCMilliseconds(0)
-  return d.toISOString()
-}

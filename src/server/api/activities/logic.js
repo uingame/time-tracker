@@ -11,12 +11,20 @@ module.exports = {
     return activities
   },
 
-  async getActivityById(id, includeSalaryOptions) {
+  async getActivityById(id) {
     const activity = await Model.findById(id).ne('isArchived', true).exec()
     if (!activity) {
       throw new UserError('Activity not found')
     }
     return activity
+  },
+
+  async getMultipleActivitiesById(ids) {
+    const activities = await Model.find()
+      .ne('isArchived', true)
+      .in('_id', ids)
+      .exec()
+    return activities
   },
 
   async addActivity(newActivity) {

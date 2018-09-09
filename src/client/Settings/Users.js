@@ -14,8 +14,9 @@ import AddIcon from '@material-ui/icons/Add'
 import TextField from 'common/TextField'
 import ActivityIndicator from 'common/ActivityIndicator'
 
-import Client from './Client'
+import User from './User'
 
+import * as usersService from 'core/usersService'
 import * as clientsService from 'core/clientsService'
 import * as activitiesService from 'core/activitiesService'
 
@@ -28,7 +29,7 @@ const styles = theme => ({
   }
 })
 
-class Clients extends React.Component {
+class Users extends React.Component {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
@@ -38,7 +39,7 @@ class Clients extends React.Component {
     loading: true,
     clients: [],
     activities: [],
-    selectedClientId: null
+    selectedId: null
   }
 
   constructor(props) {
@@ -47,61 +48,63 @@ class Clients extends React.Component {
   }
 
   async init() {
-    const [clients, activities] = await Promise.all([
+    const [clients, activities, users] = await Promise.all([
       clientsService.getAllClients(),
-      activitiesService.getAllActivities()
+      activitiesService.getAllActivities(),
+      usersService.getAllUsers()
     ])
     this.setState({
       loading: false,
       clients,
       activities,
-      // selectedClientId: clients[0] ? clients[0]._id : null
+      users
+      // selectedId: users[0] ? users[0]._id : null
     })
   }
 
-  selectClient(client) {
+  selectUser(user) {
     this.setState({
-      selectedClientId: client._id
+      selectedId: user._id
     })
   }
 
-  addNewClient() {
+  addNewUser() {
    this.setState({
-     selectedClientId: null
+     selectedId: null
    })
   }
 
-  onUpdate(client) {
-    const idx = this.state.clients.findIndex(({_id}) => _id === client._id)
+  onUpdate(user) {
+    const idx = this.state.users.findIndex(({_id}) => _id === user._id)
     if (idx === -1) {
       this.setState({
-        clients: [
-          client,
-          ...this.state.clients
+        users: [
+          user,
+          ...this.state.users
         ],
-        selectedClientId: client._id
+        selectedId: user._id
       })
     } else {
       this.setState({
-        clients: [
-          ...this.state.clients.slice(0, idx),
-          client,
-          ...this.state.clients.slice(idx+1)
+        users: [
+          ...this.state.users.slice(0, idx),
+          user,
+          ...this.state.users.slice(idx+1)
         ]
       })
     }
   }
 
-  onDelete(clientId) {
+  onDelete(userId) {
     this.setState({
-      clients: this.state.clients.filter(({_id}) => _id !== clientId),
-      selectedClientId: null
+      users: this.state.users.filter(({_id}) => _id !== userId),
+      selectedId: null
     })
   }
 
   render() {
     const {classes} = this.props
-    const {loading, clients, selectedClientId, activities} = this.state
+    const {loading, users, selectedId, activities, clients} = this.state
 
     if (loading) {
       return <ActivityIndicator />
@@ -113,15 +116,15 @@ class Clients extends React.Component {
           <TextField label='חיפוש' fullWidth={true}/>
           <Paper>
             <List>
-              {clients.map(client => [
+              {users.map(user => [
                 <ListItem
-                  key={client._id}
+                  key={user._id}
                   button
-                  selected={client._id === selectedClientId}
-                  onClick={() => this.selectClient(client)}
+                  selected={user._id === selectedId}
+                  onClick={() => this.selectUser(user)}
                 >
                   <ListItemText className={classes.listItemText}
-                  primary={client.name}
+                  primary={`${user.firstName} ${user.lastName}`}
                 />
                 </ListItem>
               ])}
@@ -131,16 +134,17 @@ class Clients extends React.Component {
         <Grid item xs={8}>
           <Grid container spacing={24} direction='column'>
             <Grid item className={classes.buttonsRow}>
-              <Button onClick={this.addNewClient} variant="contained" color="primary">
+              <Button onClick={this.addNewUser} variant="contained" color="primary">
                 <AddIcon className={classes.newIcon}/>
-                לקוח חדש
+                עובד חדש
               </Button>
             </Grid>
             <Grid item>
               <Paper>
-                <Client
-                  clientId={selectedClientId}
+                <User
+                  userId={selectedId}
                   activities={activities}
+                  clients={clients}
                   onUpdate={this.onUpdate}
                   onDelete={this.onDelete}
                 />
@@ -154,4 +158,4 @@ class Clients extends React.Component {
 
 }
 
-export default withStyles(styles)(Clients)
+export default withStyles(styles)(Users)

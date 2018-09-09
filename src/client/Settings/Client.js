@@ -237,7 +237,7 @@ class Client extends React.PureComponent {
             <TextField
               label='מספר לקוח'
               value='1234'
-              fullWidth={true}
+              fullWidth
               disabled
             />
           </Grid>
@@ -246,7 +246,7 @@ class Client extends React.PureComponent {
               label='שם'
               value={client.name}
               onChange={e => this.setValue('name', e.target.value)}
-              fullWidth={true}
+              fullWidth
               disabled={saving}
               error={errorFields.includes('name')}
             />
@@ -258,7 +258,7 @@ class Client extends React.PureComponent {
               label='שם איש קשר'
               value={client.contactPersonName}
               onChange={e => this.setValue('contactPersonName', e.target.value)}
-              fullWidth={true}
+              fullWidth
               disabled={saving}
               error={errorFields.includes('contactPersonName')}
             />
@@ -268,7 +268,7 @@ class Client extends React.PureComponent {
               label='טלפון'
               value={client.phone}
               onChange={e => this.setValue('phone', e.target.value)}
-              fullWidth={true}
+              fullWidth
               disabled={saving}
               error={errorFields.includes('phone')}
             />
@@ -280,7 +280,7 @@ class Client extends React.PureComponent {
               label='כתובת'
               value={client.address}
               onChange={e => this.setValue('address', e.target.value)}
-              fullWidth={true}
+              fullWidth
               disabled={saving}
               error={errorFields.includes('address')}
             />
@@ -290,7 +290,7 @@ class Client extends React.PureComponent {
               label='email'
               value={client.email}
               onChange={e => this.setValue('email', e.target.value)}
-              fullWidth={true}
+              fullWidth
               disabled={saving}
               error={errorFields.includes('email')}
             />
@@ -302,7 +302,7 @@ class Client extends React.PureComponent {
             multiline
             value={client.notes}
             onChange={e => this.setValue('notes', e.target.value)}
-            fullWidth={true}
+            fullWidth
             disabled={saving}
             error={errorFields.includes('notes')}
           />

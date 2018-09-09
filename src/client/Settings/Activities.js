@@ -1,18 +1,17 @@
 import React from 'react';
 import {isFunction, without} from 'lodash';
 import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
+
+import withStyles from '@material-ui/core/styles/withStyles';
 import Paper from '@material-ui/core/Paper';
-
 import Button from '@material-ui/core/Button';
-
 import AddIcon from '@material-ui/icons/Add'
 
 import ActivityIndicator from 'common/ActivityIndicator'
+import EditableTable from 'common/EditableTable'
 
 import * as activitiesService from 'core/activitiesService'
 
-import EditableTable from 'common/EditableTable'
 
 const NEW_PREFIX = 'new_'
 
@@ -85,7 +84,7 @@ class Activities extends React.Component {
       return
     }
 
-    const isDeleted = await activitiesService.deleteActivity(activity.id)
+    await activitiesService.deleteActivity(activity.id)
   }
 
   addNewActivity() {

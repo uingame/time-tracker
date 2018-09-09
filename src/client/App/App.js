@@ -8,7 +8,7 @@ import TimeTracking from 'TimeTracking/TimeTracking'
 import ClientsReport from 'Reports/ClientsReport'
 import UsersReport from 'Reports/UsersReport'
 import TimeReport from 'Reports/TimeReport'
-import Settings from 'Settings/Settings'
+import Users from 'Settings/Users'
 import Activities from 'Settings/Activities'
 import Clients from 'Settings/Clients'
 import LoginForm from 'Auth/LoginForm'
@@ -43,7 +43,7 @@ class App extends React.Component {
               <PrivateRoute adminOnly path="/usersreport" component={UsersReport} />
               <PrivateRoute adminOnly path="/timereport" component={TimeReport} />
               <PrivateRoute path="/timetracking" component={TimeTracking} />
-              <PrivateRoute adminOnly path="/users" component={Settings} />
+              <PrivateRoute adminOnly path="/users" component={Users} />
               <PrivateRoute adminOnly path="/clients" component={Clients} />
               <PrivateRoute adminOnly path="/activities" component={Activities} />
             </Switch>

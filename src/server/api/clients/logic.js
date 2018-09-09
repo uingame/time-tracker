@@ -1,15 +1,30 @@
 const {mapValues} = require('lodash')
 const Model = require('./model')
+const {getMultipleActivitiesById, getAllActivities} = require('../activities/logic')
 const UserError = require('../../common/UserError')
 
 const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
 const ACTIVITY_ID_REG_EXP = /activityId: '(\w*)'/
 
+function populateActivites(client, activities) {
+  client.activities.forEach(a => {
+    const activity = activities.find(({id}) => id === a.activityId)
+    if (activity) {
+      a.name = activity.name
+    }
+  })
+  return client
+}
+
 module.exports = {
 
   async getAllClients() {
-    const clients = await Model.find().ne('isArchived', true).exec()
-    return clients
+    const [clients, activities] = await Promise.all([
+      Model.find().ne('isArchived', true).exec(),
+      getAllActivities()
+    ])
+
+    return clients.map(client => populateActivites(client.toJSON(), activities))
   },
 
   async getClientById(id) {
@@ -17,7 +32,13 @@ module.exports = {
     if (!client) {
       throw new UserError('Client not found')
     }
-    return client
+    const activityIds = (client.activities || []).map(a => a.activityId)
+    const plainClient = client.toJSON()
+    if (activityIds.length > 0) {
+      const activities = await getMultipleActivitiesById(activityIds)
+      populateActivites(plainClient, activities)
+    }
+    return plainClient
   },
 
   async addClient(newClient) {
