@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const activitySchema = new mongoose.Schema({
   activityId: {type: String, required: true},
-  hourlyQuote: Number
+  hourlyQuote: {type: Number, min: 0}
 }, {
   _id: false
 })

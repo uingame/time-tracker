@@ -11,7 +11,6 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
-import Input from '@material-ui/core/Input';
 
 import IconButton from '@material-ui/core/IconButton'
 import SaveIcon from '@material-ui/icons/Save'
@@ -63,7 +62,7 @@ class User extends React.PureComponent {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
-    userId: PropTypes.string,
+    userId: PropTypes.string.isRequired,
     clients: PropTypes.array.isRequired,
     onUpdate: PropTypes.func.isRequired
   };
@@ -79,28 +78,20 @@ class User extends React.PureComponent {
 
   constructor(props) {
     super(props)
-    if (props.userId) {
-      this.fetchUser(props.userId)
-    } else {
+    if (props.userId == 'new') {
       this.state = {
         ...this.state,
         loading: false,
         user: EMPTY_USER
       }
+    } else {
+      this.fetchUser(props.userId)
     }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.userId !== this.props.userId) {
-      if (nextProps.userId) {
-        this.setState({
-          loading: true,
-          saving: false,
-          errorFields: [],
-          user: null
-        })
-        this.fetchUser(nextProps.userId)
-      } else {
+      if (nextProps.userId === 'new') {
         this.setState({
           ...this.state,
           loading: false,
@@ -108,6 +99,14 @@ class User extends React.PureComponent {
           errorFields: [],
           user: EMPTY_USER
         })
+      } else {
+        this.setState({
+          loading: true,
+          saving: false,
+          errorFields: [],
+          user: null
+        })
+        this.fetchUser(nextProps.userId)
       }
     }
   }
@@ -218,7 +217,7 @@ class User extends React.PureComponent {
     try {
       const user = _id ?
         await usersService.updateUser(_id, settings) :
-        await usersService.addUser(settings)
+        await usersServi3ce.addUser(settings)
 
       this.setState({
         user: {
@@ -291,7 +290,7 @@ class User extends React.PureComponent {
           <Grid item xs={3}>
             <TextField
               label='ת.ז.'
-              value={user.idNumber}
+              value={user.idNumber || ''}
               onChange={e => this.setValue('idNumber', e.target.value)}
               fullWidth
               disabled={saving}
@@ -326,7 +325,7 @@ class User extends React.PureComponent {
           <Grid item xs={3}>
             <TextField
               label='שם פרטי'
-              value={user.firstName}
+              value={user.firstName || ''}
               onChange={e => this.setValue('firstName', e.target.value)}
               fullWidth
               disabled={saving}
@@ -336,7 +335,7 @@ class User extends React.PureComponent {
           <Grid item xs={3}>
             <TextField
               label='שם משפחה'
-              value={user.lastName}
+              value={user.lastName || ''}
               onChange={e => this.setValue('lastName', e.target.value)}
               fullWidth
               disabled={saving}
@@ -346,7 +345,7 @@ class User extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='טלפון'
-              value={user.phone}
+              value={user.phone || ''}
               onChange={e => this.setValue('phone', e.target.value)}
               fullWidth
               disabled={saving}
@@ -358,7 +357,7 @@ class User extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='כתובת'
-              value={user.address}
+              value={user.address || ''}
               onChange={e => this.setValue('address', e.target.value)}
               fullWidth
               disabled={saving}
@@ -368,7 +367,7 @@ class User extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='email'
-              value={user.email}
+              value={user.email || ''}
               onChange={e => this.setValue('email', e.target.value)}
               fullWidth
               disabled={saving}
@@ -380,7 +379,7 @@ class User extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='שם משתמש'
-              value={user.username}
+              value={user.username || ''}
               onChange={e => this.setValue('username', e.target.value)}
               fullWidth
               disabled={saving}
@@ -390,7 +389,7 @@ class User extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='סיסמא'
-              value={user.password}
+              value={user.password || ''}
               onChange={e => this.setValue('password', e.target.value)}
               fullWidth
               disabled={saving}
@@ -408,7 +407,7 @@ class User extends React.PureComponent {
             <TextField
               label='סוג עובד'
               select
-              value={user.type}
+              value={user.type || ''}
               onChange={e => this.setValue('type', e.target.value)}
               disabled={saving}
               error={errorFields.includes('type')}
@@ -421,7 +420,7 @@ class User extends React.PureComponent {
             <TextField
               label='תעריף שעתי'
               type='number'
-              value={user.defaultHourlyQuote}
+              value={user.defaultHourlyQuote || ''}
               onChange={e => this.setValue('defaultHourlyQuote', e.target.value)}
               disabled={saving}
               error={errorFields.includes('defaultHourlyQuote')}
@@ -431,7 +430,7 @@ class User extends React.PureComponent {
             <TextField
               label='תעריף נסיעות'
               type='number'
-              value={user.defaultTravelQuote}
+              value={user.defaultTravelQuote || ''}
               onChange={e => this.setValue('defaultTravelQuote', e.target.value)}
               disabled={saving}
               error={errorFields.includes('defaultTravelQuote')}
@@ -502,6 +501,7 @@ class User extends React.PureComponent {
                             type='number'
                             fullWidth
                             value={userActivity.hourlyQuote || ''}
+                            placeholder={`${user.defaultHourlyQuote || ''}`}
                             onChange={e => this.updateActivityField(activity.activityId, client._id, 'hourlyQuote', e.target.value)}
                             disabled={saving}
                             error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
@@ -512,9 +512,10 @@ class User extends React.PureComponent {
                             type='number'
                             fullWidth
                             value={userActivity.travelQuote || ''}
+                            placeholder={`${user.defaultTravelQuote || ''}`}
                             onChange={e => this.updateActivityField(activity.activityId, client._id, 'travelQuote', e.target.value)}
                             disabled={saving}
-                            error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
+                            error={errorFields.includes(`activities.${idx}.travelQuote`)}
                           />}
                         </TableCell>
                       </TableRow>

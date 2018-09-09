@@ -58,7 +58,6 @@ class Users extends React.Component {
       clients,
       activities,
       users
-      // selectedId: users[0] ? users[0]._id : null
     })
   }
 
@@ -70,7 +69,7 @@ class Users extends React.Component {
 
   addNewUser() {
    this.setState({
-     selectedId: null
+     selectedId: 'new'
    })
   }
 
@@ -140,7 +139,7 @@ class Users extends React.Component {
               </Button>
             </Grid>
             <Grid item>
-              <Paper>
+              {selectedId && <Paper>
                 <User
                   userId={selectedId}
                   activities={activities}
@@ -148,7 +147,7 @@ class Users extends React.Component {
                   onUpdate={this.onUpdate}
                   onDelete={this.onDelete}
                 />
-              </Paper>
+              </Paper>}
             </Grid>
           </Grid>
         </Grid>

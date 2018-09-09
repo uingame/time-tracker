@@ -48,7 +48,7 @@ class Client extends React.PureComponent {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
-    clientId: PropTypes.string,
+    clientId: PropTypes.string.isRequired,
     activities: PropTypes.array.isRequired,
     onUpdate: PropTypes.func.isRequired
   };
@@ -63,28 +63,20 @@ class Client extends React.PureComponent {
 
   constructor(props) {
     super(props)
-    if (props.clientId) {
-      this.fetchClient(props.clientId)
-    } else {
+    if (props.clientId === 'new') {
       this.state = {
         ...this.state,
         loading: false,
         client: EMPTY_CLIENT
       }
+    } else {
+      this.fetchClient(props.clientId)
     }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.clientId !== this.props.clientId) {
-      if (nextProps.clientId) {
-        this.setState({
-          loading: true,
-          saving: false,
-          errorFields: [],
-          client: null
-        })
-        this.fetchClient(nextProps.clientId)
-      } else {
+      if (nextProps.clientId === 'new') {
         this.setState({
           ...this.state,
           loading: false,
@@ -92,6 +84,14 @@ class Client extends React.PureComponent {
           errorFields: [],
           client: EMPTY_CLIENT
         })
+      } else {
+        this.setState({
+          loading: true,
+          saving: false,
+          errorFields: [],
+          client: null
+        })
+        this.fetchClient(nextProps.clientId)
       }
     }
   }
@@ -127,8 +127,7 @@ class Client extends React.PureComponent {
   updateActivities(e) {
     this.setValue('activities', e.target.value.map(id => (
       this.state.client.activities.find(({activityId}) => activityId === id) || {
-        activityId: id,
-        hourlyQuote: this.props.activities.find(({_id}) => _id === id).defaultHourlyQuote
+        activityId: id
       }
     )))
 
@@ -244,7 +243,7 @@ class Client extends React.PureComponent {
           <Grid item xs={3}>
             <TextField
               label='שם'
-              value={client.name}
+              value={client.name || ''}
               onChange={e => this.setValue('name', e.target.value)}
               fullWidth
               disabled={saving}
@@ -256,7 +255,7 @@ class Client extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='שם איש קשר'
-              value={client.contactPersonName}
+              value={client.contactPersonName || ''}
               onChange={e => this.setValue('contactPersonName', e.target.value)}
               fullWidth
               disabled={saving}
@@ -266,7 +265,7 @@ class Client extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='טלפון'
-              value={client.phone}
+              value={client.phone || ''}
               onChange={e => this.setValue('phone', e.target.value)}
               fullWidth
               disabled={saving}
@@ -278,7 +277,7 @@ class Client extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='כתובת'
-              value={client.address}
+              value={client.address || ''}
               onChange={e => this.setValue('address', e.target.value)}
               fullWidth
               disabled={saving}
@@ -288,7 +287,7 @@ class Client extends React.PureComponent {
           <Grid item xs={6}>
             <TextField
               label='email'
-              value={client.email}
+              value={client.email || ''}
               onChange={e => this.setValue('email', e.target.value)}
               fullWidth
               disabled={saving}
@@ -300,7 +299,7 @@ class Client extends React.PureComponent {
           <TextField
             label='הערות'
             multiline
-            value={client.notes}
+            value={client.notes || ''}
             onChange={e => this.setValue('notes', e.target.value)}
             fullWidth
             disabled={saving}
@@ -331,21 +330,27 @@ class Client extends React.PureComponent {
               </TableRow>
             </TableHead>
             <TableBody>
-              {client.activities.map(({activityId, hourlyQuote}, idx) => (
-                <TableRow key={activityId}>
-                  <TableCell className={classes.cell}>
-                    {activities.find(({_id}) => _id === activityId ).name}
-                  </TableCell>
-                  <TableCell className={classes.cell}>
-                    <TextField
-                      disabled={saving}
-                      value={hourlyQuote}
-                      onChange={e => this.updateHourlyQuote(activityId, e.target.value)}
-                      error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {client.activities.map(({activityId, hourlyQuote}, idx) => {
+                const {name, defaultHourlyQuote} = activities.find(({_id}) => _id === activityId )
+                return (
+                  <TableRow key={activityId}>
+                    <TableCell className={classes.cell}>
+                      {name}
+                    </TableCell>
+                    <TableCell className={classes.cell}>
+                      <TextField
+                        type='number'
+                        min='0'
+                        disabled={saving}
+                        value={hourlyQuote || ''}
+                        placeholder={defaultHourlyQuote.toString()}
+                        onChange={e => this.updateHourlyQuote(activityId, e.target.value)}
+                        error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </Grid>

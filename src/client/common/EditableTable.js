@@ -215,7 +215,7 @@ class _EditableRow extends React.Component {
               <TextField
                 fullWidth={true}
                 className={classes.input}
-                value={data[id]}
+                value={data[id] || ''}
                 inputRef={focus && this.focusOnInput}
                 onChange={e => this.updateData(id, e.target.value)}
                 multiline={multiline}

@@ -55,7 +55,6 @@ class Clients extends React.Component {
       loading: false,
       clients,
       activities,
-      // selectedClientId: clients[0] ? clients[0]._id : null
     })
   }
 
@@ -67,7 +66,7 @@ class Clients extends React.Component {
 
   addNewClient() {
    this.setState({
-     selectedClientId: null
+     selectedClientId: 'new'
    })
   }
 
@@ -137,14 +136,14 @@ class Clients extends React.Component {
               </Button>
             </Grid>
             <Grid item>
-              <Paper>
+              {selectedClientId && <Paper>
                 <Client
                   clientId={selectedClientId}
                   activities={activities}
                   onUpdate={this.onUpdate}
                   onDelete={this.onDelete}
                 />
-              </Paper>
+              </Paper>}
             </Grid>
           </Grid>
         </Grid>
