@@ -191,6 +191,12 @@ class _EditableRow extends React.Component {
           edit: false,
           errorFields: [],
         })
+      } else {
+        this.setState({
+          saving: false,
+          edit: false,
+          errorFields: []
+        })
       }
     } catch (err) {
       this.setState({
