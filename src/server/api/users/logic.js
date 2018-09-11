@@ -55,6 +55,9 @@ module.exports = {
 
   async updateUser(id, updatedFields) {
     delete updatedFields.isSystem
+    if (updatedFields.password === '') {
+      delete updatedFields.password
+    }
     try {
       const user = await Model.findByIdAndUpdate(id, updatedFields, {
         new: true,
