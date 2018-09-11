@@ -8,7 +8,8 @@ async function configureMongoose() {
   mongoose.set('useCreateIndex', true)
   mongoose.set('useFindAndModify', false)
   await mongoose.connect(config.mongoUri, {
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    reconnectTries: Number.MAX_VALUE
   })
 
   const db = mongoose.connection;
