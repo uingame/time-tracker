@@ -2,6 +2,10 @@ import React from 'react'
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom"
 import CssBaseline from '@material-ui/core/CssBaseline';
 
+import moment from 'moment'
+import 'moment/locale/he'
+moment.locale('he')
+
 import AppShell from './AppShell'
 import {StylesProvider} from './styles'
 import TimeTracking from 'TimeTracking/TimeTracking'

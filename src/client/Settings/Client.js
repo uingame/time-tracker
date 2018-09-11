@@ -331,7 +331,11 @@ class Client extends React.PureComponent {
             </TableHead>
             <TableBody>
               {client.activities.map(({activityId, hourlyQuote}, idx) => {
-                const {name, defaultHourlyQuote} = activities.find(({_id}) => _id === activityId )
+                const activity = activities.find(({_id}) => _id === activityId )
+                if (!activity) {
+                  return null
+                }
+                const {name, defaultHourlyQuote} = activity
                 return (
                   <TableRow key={activityId}>
                     <TableCell className={classes.cell}>

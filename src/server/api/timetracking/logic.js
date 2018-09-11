@@ -1,5 +1,6 @@
 const {mapValues} = require('lodash')
 const Model = require('../reports/model')
+const activities = require('../activities/logic')
 const UserError = require('../../common/UserError')
 
 module.exports = {

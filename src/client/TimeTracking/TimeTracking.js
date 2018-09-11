@@ -1,22 +1,25 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import React from 'react'
+import PropTypes from 'prop-types'
+import {get, without} from 'lodash'
+import withStyles from '@material-ui/core/styles/withStyles';
 import Paper from '@material-ui/core/Paper';
 
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
-import EditIcon from '@material-ui/icons/Edit'
-import AddIcon from '@material-ui/icons/Add'
-import SaveIcon from '@material-ui/icons/Save'
+import ActivityIndicator from 'common/ActivityIndicator'
+
+import {getSignedInUser} from 'core/authService'
+import * as timetrackingService from 'core/timetrackingService'
+import {getAllActivities} from 'core/activitiesService'
+import {getAllClients} from 'core/clientsService'
+
+import moment from 'moment'
+import EditableTable from '../common/EditableTable';
+
+const EXTRA_MONTHS = 1
+const NEW_PREFIX = 'new_'
+const EMPTY_PREFIX = 'empty_'
 
 const styles = theme => ({
   root: {
@@ -33,167 +36,301 @@ const styles = theme => ({
     padding: theme.spacing.unit * 1.5
   },
   input: {
-    fontSize: '1.25rem'
-  },
-  monthSelection: {
-    marginTop: theme.spacing.unit * 1.5
+    fontSize: '1.25rem',
+    direction: 'rtl'
   }
 });
 
-let id = 0;
-function createData(day, startTime, endTime, duration, client, activity, notes, edit) {
-  id += 1;
-  const weekDay = (day+2)%7
-  const weekDayString = weekDay === 0 ? 'ראשון' :
-    weekDay === 1 ? 'שני' :
-    weekDay === 2 ? 'שלישי' :
-    weekDay === 3 ? 'רביעי' :
-    weekDay === 4 ? 'חמישי' :
-    weekDay === 5 ? 'שישי' :
-    weekDay === 6 ? 'שבת' : undefined
-  return { id, day, weekDay, weekDayString, startTime, endTime, duration, client, activity, notes, edit};
-}
+let dummyIdCouter = 0
 
-const rows = [
-  createData(1),
-  createData(2),
-  createData(3),
-  createData(4),
-  createData(5),
-  createData(6, '12:00', '13:30', 3, 'בית ספר #1', 'פעילות #1'),
-  createData(undefined , '14:00', '16:30', 1, 'בית ספר #1', 'פעילות #2'),
-  createData(7),
-  createData(8, '12:00', '13:30', 3, 'בית ספר #1', 'פעילות #1', '', true),
-  createData(9),
-  createData(10),
-  createData(11),
-  createData(12),
-  createData(13),
-  createData(14),
-  createData(15),
-  createData(16),
-  createData(17),
-  createData(18),
-  createData(19),
-  createData(20),
-  createData(21),
-  createData(22),
-  createData(23),
-  createData(24),
-  createData(25),
-  createData(26),
-  createData(27),
-  createData(28),
-  createData(29),
-  createData(30),
-  createData(31)
-];
+class TimeTracking extends React.Component {
 
-function SimpleTable(props) {
-  const { classes } = props;
+  static propTypes = {
+    classes: PropTypes.object.isRequired,
+  }
 
-  return (
-    <div>
-      <FormControl className={classes.monthSelection}>
+  state = {
+    loading: true,
+    loadingMonth: false,
+    clients: [],
+    activities: [],
+    selectedMonth: null,
+    data: []
+  }
+
+  constructor(props) {
+    super(props)
+    this.init()
+  }
+
+  async init() {
+    const [clients, activities] = await Promise.all([
+      getAllClients(),
+      getAllActivities()
+    ])
+    const user = getSignedInUser()
+    const months = getUserMonths(user)
+    this.setState({
+      loading: false,
+      clients,
+      activities: clients.reduce((ret, client) => {
+        ret[client._id] = activities
+          .filter(activity => client.activities.some(({activityId}) => activityId === activity._id))
+        return ret
+      }, {}),
+      months
+    })
+    this.selectMonth(months.length-1-EXTRA_MONTHS)
+  }
+
+  async selectMonth(e) {
+    const idx = get(e, 'target.value', e)
+    const selectedMonth = this.state.months[idx]
+    this.setState({
+      selectedMonth,
+      loadingMonth: true
+    })
+    const reports = await timetrackingService.getMonthTimeTracking(selectedMonth.month, selectedMonth.year)
+    let m = moment.utc({year: selectedMonth.year, month: selectedMonth.month-1})
+    const data = []
+    while (m.month() === selectedMonth.month-1) {
+      const datenumber = m.date()
+      const dayReports = reports.filter(({date}) => moment.utc(date).date() === datenumber)
+      if (dayReports.length === 0) {
+        data.push({
+          _id: EMPTY_PREFIX + datenumber,
+          datenumber,
+          date: m.toISOString(),
+          weekday: m.format('dddd')
+        })
+      } else {
+        data.push(...dayReports.map((r, idx) => ({
+          ...r,
+          datenumber: idx === 0 ? datenumber : '',
+          weekday: idx === 0 ? m.format('dddd') : ''
+        })))
+      }
+      m = m.add(1, 'd')
+    }
+    this.setState({
+      loadingMonth: false,
+      data
+    })
+  }
+
+  isEmpty(report) {
+    return report._id.startsWith(EMPTY_PREFIX)
+  }
+
+  isNew(report) {
+    return report._id.startsWith(NEW_PREFIX)
+  }
+
+  isLastInDay(report) {
+    const {data} = this.state
+    const idx = data.findIndex(({_id}) => _id === report._id)
+    return get(data[idx], 'date') !== get(data[idx+1], 'date')
+  }
+
+  async saveReport(report) {
+    const {_id, datenumber, weekday, userId, ...reportData} = report
+    const isNew = this.isNew(report)
+    const updatedReport = isNew ?
+      await timetrackingService.addTimeTrackingReport(reportData) :
+      await timetrackingService.updateTimeTrackingReport(_id, reportData)
+
+    updatedReport.datenumber = datenumber
+    updatedReport.weekday = weekday
+
+    const {data} = this.state
+    const idx = data.findIndex(r => r._id === _id)
+    this.setState({
+      data : [
+        ...data.slice(0, idx),
+        updatedReport,
+        ...data.slice(idx+1)
+      ]
+    })
+  }
+
+  async deleteReport(report) {
+    const isNew = this.isNew(report)
+    if (!isNew) {
+      await timetrackingService.deleteTimeTrackingReport(report._id)
+    }
+
+    if (this.isEmpty(report)) {
+      return
+    }
+
+    const {data} = this.state
+    const idx = data.findIndex(r => r === report)
+
+    if (!report.datenumber) { // Not the first line in this date
+      this.setState({
+        data: without(data, report)
+      })
+    } else if (get(data[idx+1], 'datenumber')) { // This is the one and only report in this date
+      this.setState({
+        data: [
+          ...data.slice(0, idx),
+          {
+            _id: EMPTY_PREFIX + report.datenumber,
+            datenumber: report.datenumber,
+            date: report.date,
+            weekday: report.weekday
+          },
+          ...data.slice(idx+1)
+        ]
+      })
+    } else { // This is the first of multiple report in this date
+      this.setState({
+        data: [
+          ...data.slice(0, idx),
+          {
+            ...data[idx+1],
+            datenumber: report.datenumber,
+            weekday: report.weekday,
+          },
+          ...data.slice(idx+2)
+        ]
+      })
+    }
+
+  }
+
+  addAfter(report) {
+    const {data} = this.state
+    const idx = data.findIndex(r => r === report)
+    if (this.isEmpty(report)) {
+      this.setState({
+        data: [
+          ...data.slice(0, idx),
+          {
+            ...report,
+            _id: NEW_PREFIX + (dummyIdCouter++)
+          },
+          ...data.slice(idx+1)
+        ]
+      })
+      return
+    }
+    this.setState({
+      data: [
+        ...data.slice(0, idx+1),
+        {
+          _id: NEW_PREFIX + (dummyIdCouter++),
+          date: report.date,
+          name: '',
+          defaultHourlyQuote: 0,
+          notes: ''
+        },
+        ...data.slice(idx+1)
+      ]
+    })
+  }
+
+  render() {
+    const {classes} = this.props
+    const {loading, loadingMonth, months, selectedMonth, clients, activities, data} = this.state
+
+    if (loading) {
+      return <ActivityIndicator />
+    }
+
+    return (
+      <React.Fragment>
         <Select
           className={classes.input}
-          value={10}
+          value={months.indexOf(selectedMonth)}
+          onChange={this.selectMonth}
         >
-          <MenuItem value="">
-            <em>None</em>
-          </MenuItem>
-          <MenuItem value={10}>אוגוסט 2018</MenuItem>
-          <MenuItem value={20}>יולי 2018</MenuItem>
+          {months.map((month, idx) => (
+            <MenuItem key={idx} value={idx}>{month.display}</MenuItem>
+          ))}
         </Select>
-      </FormControl>
-      <Paper className={classes.root}>
-        <Table className={classes.table}>
-          <TableHead>
-            <TableRow>
-              <TableCell className={classes.cell} numeric>יום</TableCell>
-              <TableCell className={classes.cell}>יום בשבוע</TableCell>
-              <TableCell className={classes.cell} numeric>זמן התחלה</TableCell>
-              <TableCell className={classes.cell} numeric>זמן סיום</TableCell>
-              <TableCell className={classes.cell} numeric>מס שעות</TableCell>
-              <TableCell className={classes.cell}>לקוח</TableCell>
-              <TableCell className={classes.cell}>פעילות</TableCell>
-              <TableCell className={classes.cell}>הערות</TableCell>
-              <TableCell className={classes.cell}></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map(row => {
-              return (
-                <TableRow key={row.id}>
-                  <TableCell className={classes.cell} numeric>{row.day}</TableCell>
-                  <TableCell className={classes.cell}>{row.weekDayString}</TableCell>
-                  <TableCell className={classes.cell} numeric>{!row.edit ? row.startTime : (
-                    <FormControl>
-                      <TextField type='time' className={classes.input} value={row.startTime} />
-                    </FormControl>
-                  )}</TableCell>
-                  <TableCell className={classes.cell} numeric>{!row.edit ? row.endTime : (
-                    <FormControl>
-                      <TextField type='time' className={classes.input} value={row.endTime} />
-                    </FormControl>
-                  )}
-                  </TableCell>
-                  <TableCell className={classes.cell} numeric>{!row.edit ? row.duration : (
-                    <FormControl>
-                      <TextField type='number' className={classes.input} value={row.duration} />
-                    </FormControl>
-                  )}
-                  </TableCell>
-                  <TableCell className={classes.cell}>{!row.edit ? row.client : (
-                    <FormControl>
-                      <Select
-                        className={classes.input}
-                        value={10}
-                      >
-                        <MenuItem value="">
-                          <em>None</em>
-                        </MenuItem>
-                        <MenuItem value={10}>בית ספר #1</MenuItem>
-                        <MenuItem value={20}>בית ספר #2</MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}</TableCell>
-                  <TableCell className={classes.cell}>{!row.edit ? row.activity : (
-                    <FormControl>
-                      <Select
-                        className={classes.input}
-                        value={20}
-                      >
-                        <MenuItem value="">
-                          <em>None</em>
-                        </MenuItem>
-                        <MenuItem value={10}>פעילות #1</MenuItem>
-                        <MenuItem value={20}>פעילות #2</MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}</TableCell>
-                  <TableCell className={classes.cell}>{!row.edit ? row.notes : (
-                    <FormControl>
-                      <Input className={classes.input} value={row.notes} />
-                    </FormControl>
-                  )}</TableCell>
-                  <TableCell className={classes.cell}>
-                    {(!row.edit && row.startTime) && <EditIcon /> }
-                    {(!row.edit && !row.startTime || !row.day) && <AddIcon /> }
-                    {row.edit && <SaveIcon /> }
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Paper>
-    </div>
-  );
+        {loadingMonth ? <ActivityIndicator /> : (
+          <Paper className={classes.root}>
+            <EditableTable
+              headers={[{
+                id: 'datenumber',
+                title: 'תאריך',
+                type: 'readonly'
+              }, {
+                id: 'weekday',
+                title: 'יום',
+                type: 'readonly'
+              }, {
+                id: 'startTime',
+                title: 'זמן התחלה',
+                type: 'time',
+                focus: true
+              }, {
+                id: 'endTime',
+                title: 'זמן סיום',
+                type: 'time'
+              }, {
+                id: 'duration',
+                type: 'number',
+                title: 'מס שעות'
+              }, {
+                id: 'clientId',
+                title: 'לקוח',
+                select: clients,
+                idField: '_id',
+                displayField: 'name'
+              }, {
+                id: 'activityId',
+                title: 'פעילות',
+                select: ({clientId}) => activities[clientId],
+                idField: '_id',
+                displayField: 'name'
+              }, {
+                id: 'notes',
+                title: 'הערות',
+                wide: true,
+                multiline: true
+              }]}
+              data={data}
+              isNew={this.isNew}
+              allowAdd={this.isLastInDay}
+              preventEdit={this.isEmpty}
+              onSave={this.saveReport}
+              onDelete={this.deleteReport}
+              onAdd={this.addAfter}
+            />
+          </Paper>
+        )}
+      </React.Fragment>
+    )
+  }
 }
 
-SimpleTable.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
+export default withStyles(styles)(TimeTracking);
 
-export default withStyles(styles)(SimpleTable);
+function getUserMonths(user) {
+  const lastDate = new Date()
+  lastDate.setUTCMonth(lastDate.getUTCMonth() + EXTRA_MONTHS)
+  const startDate = new Date(user.startDate)
+  const firstMonth = startDate.getUTCMonth()+1
+  const firstYear = startDate.getUTCFullYear()
+  const lastMonth = lastDate.getUTCMonth()+1
+  const lastYear = lastDate.getUTCFullYear()
+  const ret = []
+  for (let year = firstYear; year <= lastYear; year++) {
+    for (
+      let month = (year === firstYear) ? firstMonth : 1;
+      month <= ((year === lastYear) ? lastMonth : 12);
+      month++
+    ) {
+      const m = moment.utc({year, month: month-1})
+      ret.push({
+        year,
+        month,
+        numberOfDays: m.numberOfDays,
+        display: m.format('YYYY MMMM')
+      })
+    }
+  }
+  return ret
+}

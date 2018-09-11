@@ -11,7 +11,7 @@ const schema = new mongoose.Schema({
   date: {type: Date, required: true},
   startTime: {type: String, required: true, match: TIME_REGEXP},
   endTime: {type: String, required: true, match: TIME_REGEXP},
-  duration: {type: Number, min: 0},
+  duration: {type: Number, required: true, min: 0},
   notes: {type: String, default: ''}
 }, {
   toObject: {

@@ -77,14 +77,13 @@ class Activities extends React.Component {
   }
 
   async deleteActivity(activity) {
-    if (this.isNew(activity)) {
-      this.setState({
-        activities: without(this.state.activities, activity)
-      })
-      return
+    if (!this.isNew(activity)) {
+      await activitiesService.deleteActivity(activity._id)
     }
 
-    await activitiesService.deleteActivity(activity.id)
+    this.setState({
+      activities: without(this.state.activities, activity)
+    })
   }
 
   addNewActivity() {
@@ -153,18 +152,6 @@ class Activities extends React.Component {
       </div>
     );
   }
-}
-
-function replaceInArray(arr, predicate, newItem) {
-  return arr.map(item => {
-    if (!predicate(item)) {
-      return item
-    }
-    if (isFunction(newItem)) {
-      return newItem(item)
-    }
-    return newItem
-  })
 }
 
 export default withStyles(styles)(Activities);
