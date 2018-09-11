@@ -104,7 +104,7 @@ class AppHeader extends React.Component {
             </Typography>
             <NavButton to='/clientsreport'>דוח לקוחות</NavButton>
             <NavButton  to='/usersreport'>דוח עובדים</NavButton>
-            <NavButton  to='/timereport'>דוח מפורט</NavButton>
+            <NavButton  to='/advancedreport'>דוח מפורט</NavButton>
             <NavButton  to='/timetracking'>דיווח שעות</NavButton>
             <IconButton
               aria-owns={open ? 'menu-appbar' : null}

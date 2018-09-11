@@ -78,7 +78,7 @@ function populate(reports, users, clients, activities) {
     const user = users.find(({id}) => id === report.userId)
     const client = clients.find(({id}) => id === report.clientId)
     const activity = activities.find(({id}) => id === report.activityId)
-    report.username = `${user.firstName} ${user.lastName}`
+    report.username = user.displayName
     report.activityName = activity.name
     report.clientName = client.name
   })

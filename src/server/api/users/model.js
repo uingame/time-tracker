@@ -37,8 +37,13 @@ const schema = new mongoose.Schema({
     transform: (doc, ret) => {
       delete ret.__v
       delete ret.password
-    }
+    },
+    getters: true
   }
+})
+
+schema.virtual('displayName').get(function() {
+  return `${this.firstName} ${this.lastName}`
 })
 
 module.exports = mongoose.model('User', schema);

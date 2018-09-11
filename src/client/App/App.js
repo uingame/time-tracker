@@ -11,7 +11,7 @@ import {StylesProvider} from './styles'
 import TimeTracking from 'TimeTracking/TimeTracking'
 import ClientsReport from 'Reports/ClientsReport'
 import UsersReport from 'Reports/UsersReport'
-import TimeReport from 'Reports/TimeReport'
+import AdvancedReport from 'Reports/AdvancedReport'
 import Users from 'Settings/Users'
 import Activities from 'Settings/Activities'
 import Clients from 'Settings/Clients'
@@ -45,7 +45,7 @@ class App extends React.Component {
               <Route path="/login" component={LoginForm} />
               <PrivateRoute adminOnly path="/clientsreport" component={ClientsReport} />
               <PrivateRoute adminOnly path="/usersreport" component={UsersReport} />
-              <PrivateRoute adminOnly path="/timereport" component={TimeReport} />
+              <PrivateRoute adminOnly path="/advancedreport" component={AdvancedReport} />
               <PrivateRoute path="/timetracking" component={TimeTracking} />
               <PrivateRoute adminOnly path="/users" component={Users} />
               <PrivateRoute adminOnly path="/clients" component={Clients} />
