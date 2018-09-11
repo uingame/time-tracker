@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 
 TIME_REGEXP = /^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/
-DATE_REGEXP = /^([0-1]?[0-9]|2[0-3]):[0-5]?[0-9]$/
 
 const schema = new mongoose.Schema({
   userId: {type: String, required: true},

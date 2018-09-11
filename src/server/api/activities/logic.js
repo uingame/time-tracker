@@ -19,9 +19,8 @@ module.exports = {
     return activity
   },
 
-  async getMultipleActivitiesById(ids) {
+  async getMultipleActivities(ids) {
     const activities = await Model.find()
-      .ne('isArchived', true)
       .in('_id', ids)
       .exec()
     return activities

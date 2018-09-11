@@ -13,6 +13,11 @@ module.exports = {
     return users
   },
 
+  async getMultipleUsers(userIds) {
+    const users = await Model.find().in('_id', userIds).exec()
+    return users
+  },
+
   async getUserById(id) {
     const user = await Model.findById(id).ne('isArchived', true).exec()
     if (!user) {

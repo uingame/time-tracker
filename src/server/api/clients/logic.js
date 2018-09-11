@@ -1,6 +1,6 @@
 const {mapValues} = require('lodash')
 const Model = require('./model')
-const {getMultipleActivitiesById, getAllActivities} = require('../activities/logic')
+const {getMultipleActivities, getAllActivities} = require('../activities/logic')
 const UserError = require('../../common/UserError')
 
 const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
@@ -27,6 +27,11 @@ module.exports = {
     return clients.map(client => populateActivites(client.toJSON(), activities))
   },
 
+  async getMultipleClients(clientIds) {
+    const clients = await Model.find().in('_id', clientIds).exec()
+    return clients
+  },
+
   async getClientById(id) {
     const client = await Model.findById(id).ne('isArchived', true).exec()
     if (!client) {
@@ -35,7 +40,7 @@ module.exports = {
     const activityIds = (client.activities || []).map(a => a.activityId)
     const plainClient = client.toJSON()
     if (activityIds.length > 0) {
-      const activities = await getMultipleActivitiesById(activityIds)
+      const activities = await getMultipleActivities(activityIds)
       populateActivites(plainClient, activities)
     }
     return plainClient
