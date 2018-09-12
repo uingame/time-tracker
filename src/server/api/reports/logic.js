@@ -56,10 +56,6 @@ async function getReports(startDate, endDate, group, filter) {
     })
   } else if (group === 'user') {
     const reportsByUser = groupBy(reports, r => r.userId)
-    // SUM
-    // totalHourlySalary
-    // totalTravelSalary
-    // totalSalary
     return mapValues(reportsByUser, (reports, userId) => {
       const user = users.find(({id}) => id === userId)
       return {
@@ -75,8 +71,8 @@ async function getReports(startDate, endDate, group, filter) {
 
 function populate(reports, users, clients, activities) {
   reports.forEach(report => {
-    const user = users.find(({id}) => id === report.userId)
-    const client = clients.find(({id}) => id === report.clientId)
+    const user = users.find(({id}) => Number(id) === report.userId)
+    const client = clients.find(({id}) => Number(id) === report.clientId)
     const activity = activities.find(({id}) => id === report.activityId)
     report.username = user.displayName
     report.activityName = activity.name
@@ -94,16 +90,16 @@ function calculateReportsTotalPrice(reports, client, activities) {
 
 function calculateUserSalary(reports, user) {
   const salary = reports.reduce((ret, {activityId, clientId, duration}) => {
-    const {hourlyQuote} = user.activities.find(a => a.activityId === activityId && a.clientId === clientId)
-    const quote = hourlyQuote || user.hourlyQuote || 0
+    const activity = user.activities.find(a => a.activityId === activityId && a.clientId === clientId)
+    const quote = (activity && activity.hourlyQuote) || user.defaultHourlyQuote || 0
     return ret + quote*duration
   }, 0)
 
   const reportsByWorkdays = map(groupBy(reports, r => r.date.toISOString()))
   const travelSalary = reportsByWorkdays.reduce((ret, dayReports) => {
     return ret + Math.max(...dayReports.map(({activityId, clientId}) => {
-      const {travelQuote} = user.activities.find(a => a.activityId === activityId && a.clientId === clientId)
-      return travelQuote || user.defaultTravelQuote || 0
+      const activity = user.activities.find(a => a.activityId === activityId && a.clientId === clientId)
+      return (activity && activity.travelQuote) || user.defaultTravelQuote || 0
     }))
   }, 0)
 
