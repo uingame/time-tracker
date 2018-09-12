@@ -17,7 +17,6 @@ class ErrorDisplay extends React.Component {
   }
 
   constructor(props) {
-    console.log('yo')
     super(props)
     apiClient.interceptors.response.use(null, error => {
       this.setState({
