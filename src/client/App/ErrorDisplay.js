@@ -1,7 +1,9 @@
 import React from 'react'
 import {get} from 'lodash'
+import {withRouter} from 'react-router-dom'
 import {Snackbar, withStyles} from '@material-ui/core'
 import apiClient from 'core/apiClient'
+import {signOut} from 'core/authService'
 
 const styles = theme => ({
   error: {
@@ -19,9 +21,14 @@ class ErrorDisplay extends React.Component {
   constructor(props) {
     super(props)
     apiClient.interceptors.response.use(null, error => {
-      this.setState({
-        errorMessage: get(error, 'response.data.error', 'unknown server error')
-      })
+      if (error.response.status === 401) {
+        signOut()
+        this.props.history.push('/login')
+      } else {
+        this.setState({
+          errorMessage: get(error, 'response.data.error', 'unknown server error')
+        })
+      }
       return Promise.reject(error)
     })
 
@@ -53,4 +60,4 @@ class ErrorDisplay extends React.Component {
   }
 }
 
-export default withStyles(styles)(ErrorDisplay)
+export default withStyles(styles)(withRouter(ErrorDisplay))
