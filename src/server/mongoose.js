@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const config = require('./config')
 
 require('mongoose-type-email')
-// mongoose.set('debug', true)
+mongoose.set('debug', config.debug)
 mongoose.set('useCreateIndex', true)
 mongoose.set('useFindAndModify', false)
 mongoose.plugin(lastModifiedPlugin)
