@@ -1,5 +1,6 @@
 const {mapValues} = require('lodash')
 const Model = require('./model')
+const UsersModel = require('../users/model')
 const {getMultipleActivities, getAllActivities} = require('../activities/logic')
 const UserError = require('../../common/UserError')
 const counters = require('../../common/counters')
@@ -120,6 +121,13 @@ module.exports = {
     })
       .ne('isArchived', true)
       .exec()
+
+    UsersModel.updateMany({
+      'activities.clientId': id
+    }, {
+      $pull: {activities: {clientId: id}}
+    }).exec()
+
     return {success: !!client};
   }
 

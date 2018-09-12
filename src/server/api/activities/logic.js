@@ -1,5 +1,7 @@
 const {mapValues} = require('lodash')
 const Model = require('./model')
+const ClientsModel = require('../clients/model')
+const UsersModel = require('../users/model')
 const UserError = require('../../common/UserError')
 
 const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
@@ -89,6 +91,18 @@ module.exports = {
     })
       .ne('isArchived', true)
       .exec()
+
+    UsersModel.updateMany({
+      'activities.activityId': id
+    }, {
+      $pull: {activities: {activityId: id}}
+    }).exec()
+    ClientsModel.updateMany({
+      'activities.activityId': id
+    }, {
+      $pull: {activities: {activityId: id}}
+    }).exec()
+
     return {result: !!activity};
   }
 
