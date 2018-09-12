@@ -7,7 +7,8 @@
     "dev:server": "nodemon .",
     "dev:client": "webpack-dev-server",
     "dev": "concurrently webpack-dev-server \"nodemon .\"",
-    "build": "NODE_ENV=production webpack"
+    "build": "NODE_ENV=production webpack",
+    "postinstall": "NODE_ENV=production webpack"
   },
   "engines": {
     "node": "9.11.1"
