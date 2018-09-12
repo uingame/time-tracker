@@ -37,6 +37,7 @@ class Clients extends React.Component {
   state = {
     loading: true,
     clients: [],
+    filter: '',
     activities: [],
     selectedClientId: null
   }
@@ -55,6 +56,12 @@ class Clients extends React.Component {
       loading: false,
       clients,
       activities,
+    })
+  }
+
+  setFilter(e) {
+    this.setState({
+      filter: e.target.value
     })
   }
 
@@ -100,7 +107,7 @@ class Clients extends React.Component {
 
   render() {
     const {classes} = this.props
-    const {loading, clients, selectedClientId, activities} = this.state
+    const {loading, clients, filter, selectedClientId, activities} = this.state
 
     if (loading) {
       return <ActivityIndicator />
@@ -109,10 +116,10 @@ class Clients extends React.Component {
     return (
       <Grid container spacing={24}>
         <Grid item xs={4}>
-          <TextField label='חיפוש' fullWidth={true}/>
+          <TextField label='חיפוש' fullWidth={true} onChange={this.setFilter} value={filter}/>
           <Paper>
             <List>
-              {clients.map(client => [
+              {clients.filter(({name}) => name.includes(filter)).map(client => [
                 <ListItem
                   key={client._id}
                   button

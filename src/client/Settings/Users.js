@@ -38,6 +38,7 @@ class Users extends React.Component {
   state = {
     loading: true,
     clients: [],
+    filter: '',
     activities: [],
     selectedId: null
   }
@@ -58,6 +59,12 @@ class Users extends React.Component {
       clients,
       activities,
       users
+    })
+  }
+
+  setFilter(e) {
+    this.setState({
+      filter: e.target.value
     })
   }
 
@@ -103,7 +110,7 @@ class Users extends React.Component {
 
   render() {
     const {classes} = this.props
-    const {loading, users, selectedId, activities, clients} = this.state
+    const {loading, users, selectedId, activities, clients, filter} = this.state
 
     if (loading) {
       return <ActivityIndicator />
@@ -112,10 +119,10 @@ class Users extends React.Component {
     return (
       <Grid container spacing={24}>
         <Grid item xs={4}>
-          <TextField label='חיפוש' fullWidth={true}/>
+          <TextField label='חיפוש' fullWidth={true} onChange={this.setFilter} value={filter}/>
           <Paper>
             <List>
-              {users.map(user => [
+              {users.filter(({displayName}) => displayName.includes(filter)).map(user => [
                 <ListItem
                   key={user._id}
                   button
