@@ -60,6 +60,8 @@ module.exports = {
 
   async updateUser(id, updatedFields) {
     delete updatedFields.isSystem
+    delete updatedFields.createdAt
+    updatedFields.modifiedAt = new Date()
     if (updatedFields.password === '') {
       delete updatedFields.password
     }

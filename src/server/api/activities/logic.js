@@ -44,6 +44,8 @@ module.exports = {
   },
 
   async updateActivity(id, updatedFields) {
+    delete updatedFields.createdAt
+    updatedFields.modifiedAt = new Date()
     try {
       const activity = await Model.findByIdAndUpdate(id, updatedFields, {
         new: true,

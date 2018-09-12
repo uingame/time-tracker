@@ -43,6 +43,8 @@ module.exports = {
   },
 
   async updateTimeTrackingReport(user, reportId, updatedFields) {
+    delete updatedFields.createdAt
+    updatedFields.modifiedAt = new Date()
     try {
       const report = await Model.findOneAndUpdate({
         _id: reportId,

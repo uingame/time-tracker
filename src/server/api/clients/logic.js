@@ -64,6 +64,8 @@ module.exports = {
   },
 
   async updateClient(id, updatedFields) {
+    delete updatedFields.createdAt
+    updatedFields.modifiedAt = new Date()
     try {
       const client = await Model.findByIdAndUpdate(id, updatedFields, {
         new: true,
