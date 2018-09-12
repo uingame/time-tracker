@@ -406,6 +406,7 @@ class User extends React.PureComponent {
           <Grid item xs={2}>
             <TextField
               label='סוג עובד'
+              fullWidth
               select
               value={user.type || ''}
               onChange={e => this.setValue('type', e.target.value)}
@@ -419,6 +420,7 @@ class User extends React.PureComponent {
           <Grid item xs={2}>
             <TextField
               label='תעריף שעתי'
+              fullWidth
               type='number'
               value={user.defaultHourlyQuote || ''}
               onChange={e => this.setValue('defaultHourlyQuote', e.target.value)}
@@ -429,11 +431,25 @@ class User extends React.PureComponent {
           <Grid item xs={2}>
             <TextField
               label='תעריף נסיעות'
+              fullWidth
               type='number'
               value={user.defaultTravelQuote || ''}
               onChange={e => this.setValue('defaultTravelQuote', e.target.value)}
               disabled={saving}
               error={errorFields.includes('defaultTravelQuote')}
+            />
+          </Grid>
+          <Grid item xs={2}>
+            <TextField
+              label='יום אחרון לדיווח'
+              fullWidth
+              type='number'
+              min={0}
+              max={31}
+              value={user.lastReportDay || ''}
+              onChange={e => this.setValue('lastReportDay', e.target.value)}
+              disabled={saving}
+              error={errorFields.includes('lastReportDay')}
             />
           </Grid>
         </Grid>
