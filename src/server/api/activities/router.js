@@ -7,7 +7,7 @@ const router = new express.Router()
 router.use(IsAuthenticated)
 
 router.get('/', makeEndpoint(
-  () => logic.getAllActivities()
+  ({user}) => logic.getAllActivities(user)
 ))
 
 router.use(IsAdmin)

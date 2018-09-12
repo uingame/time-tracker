@@ -7,7 +7,7 @@ const router = new express.Router()
 router.use(IsAuthenticated)
 
 router.get('/', makeEndpoint(
-  () => logic.getAllClients()
+  ({user}) => logic.getAllClients(user)
 ))
 
 router.use(IsAdmin)

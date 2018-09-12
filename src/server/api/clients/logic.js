@@ -19,10 +19,16 @@ function populateActivites(client, activities) {
 
 module.exports = {
 
-  async getAllClients() {
+  async getAllClients(user) {
+    let query = Model.find().ne('isArchived', true)
+
+    if (!user.isAdmin) {
+      query = query.in('_id', user.activities.map(a => a.clientId))
+    }
+
     const [clients, activities] = await Promise.all([
-      Model.find().ne('isArchived', true).exec(),
-      getAllActivities()
+      query.exec(),
+      getAllActivities(user)
     ])
 
     return clients.map(client => populateActivites(client.toJSON(), activities))
