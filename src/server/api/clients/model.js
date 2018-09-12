@@ -8,6 +8,7 @@ const activitySchema = new mongoose.Schema({
 })
 
 const schema = new mongoose.Schema({
+  _id: Number,
   name: {type: String, required: true, unique: true, sparse: true},
   contactPersonName: String,
   address: String,

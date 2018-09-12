@@ -235,7 +235,7 @@ class Client extends React.PureComponent {
           <Grid item xs={1}>
             <TextField
               label='מספר לקוח'
-              value='1234'
+              value={client._id}
               fullWidth
               disabled
             />

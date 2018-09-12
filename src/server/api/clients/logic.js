@@ -2,6 +2,7 @@ const {mapValues} = require('lodash')
 const Model = require('./model')
 const {getMultipleActivities, getAllActivities} = require('../activities/logic')
 const UserError = require('../../common/UserError')
+const counters = require('../../common/counters')
 
 const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
 const ACTIVITY_ID_REG_EXP = /activityId: '(\w*)'/
@@ -47,10 +48,15 @@ module.exports = {
   },
 
   async addClient(newClient) {
+    const _id = await counters.getNextId('clients')
     try {
-      const client = await Model.create(newClient)
+      const client = await Model.create({
+        ...newClient,
+        _id
+      })
       return client
     } catch (err) {
+      counters.cancelId('clients', _id)
       if (err.name === 'ValidationError') {
         throw new UserError(err._message, mapValues(err.errors, e => e.message))
       } else if (err.code === 11000) {

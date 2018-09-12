@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const {get, mapValues} = require('lodash')
 const Model = require('./model')
 const UserError = require('../../common/UserError')
+const counters = require('../../common/counters')
 
 const SALT_ROUNDS = 12
 const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
@@ -38,14 +39,17 @@ module.exports = {
 
   async addUser(newUser) {
     const passwordHash = (!newUser.password) ? undefined : await bcrypt.hash(newUser.password, SALT_ROUNDS)
+    const _id = await counters.getNextId('users')
     try {
       const user = await Model.create({
         ...newUser,
+        _id,
         password: passwordHash,
         isSystem: false
       })
       return user
     } catch (err) {
+      counters.cancelId('users', _id)
       if (err.name === 'ValidationError') {
         throw new UserError(err._message, mapValues(err.errors, e => e.message))
       } else if (err.code === 11000) {

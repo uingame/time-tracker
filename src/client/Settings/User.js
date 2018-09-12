@@ -282,7 +282,7 @@ class User extends React.PureComponent {
           <Grid item xs={3}>
             <TextField
               label='מספר עובד'
-              value='123'
+              value={user._id}
               fullWidth
               disabled
             />
