@@ -1,7 +1,7 @@
 module.exports = {
   env: process.env.NODE_ENV || 'development',
   port: process.env.PORT || 3000,
-  debug: `${process.env.DEBUG}`.toLowerCase == 'true',
+  debug: `${process.env.DEBUG}`.toLowerCase() === 'true',
 
   jwtSecret: process.env.JWT_SECRET || 'jwtsecret',
   jwtIssuer: process.env.JWT_ISSUER || 'uingame',
