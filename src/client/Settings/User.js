@@ -217,7 +217,7 @@ class User extends React.PureComponent {
     try {
       const user = _id ?
         await usersService.updateUser(_id, settings) :
-        await usersServi3ce.addUser(settings)
+        await usersService.addUser(settings)
 
       this.setState({
         user: {
