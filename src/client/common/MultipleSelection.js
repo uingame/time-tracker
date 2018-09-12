@@ -42,7 +42,7 @@ const MenuProps = {
   },
 }
 
-const MultipleSelection = ({label, disabled, value, onChange, data, displayField, classes, keyField='_id'}) => (
+const MultipleSelection = ({label, single, disabled, value, onChange, data, displayField, classes, keyField='_id'}) => (
   <FormControl disabled={disabled} className={classes.formControl} fullWidth={true}>
     <InputLabel
       FormLabelClasses={{
@@ -53,7 +53,7 @@ const MultipleSelection = ({label, disabled, value, onChange, data, displayField
       {label}
     </InputLabel>
     <Select
-      multiple
+      multiple={!single}
       value={value}
       onChange={onChange}
       input={<Input

@@ -1,5 +1,6 @@
 import apiClient from 'core/apiClient'
 import querystring from 'querystring'
+import moment from 'moment';
 
 export async function getReports(startDate, endDate, group, filter) {
   const query = {
@@ -16,4 +17,8 @@ export async function getReports(startDate, endDate, group, filter) {
   }
   const {data} = await apiClient.get(`/reports?${querystring.stringify(query)}`)
   return data
+}
+
+export async function getFirstActivityDate() {
+  return moment.utc({hours:0, minutes:0, seconds:0, milliseconds:0}).add(-4, 'months').toISOString()
 }

@@ -8,7 +8,7 @@ import ActivityIndicator from 'common/ActivityIndicator'
 import {getAllClients} from 'core/clientsService'
 import {getAllUsers} from 'core/usersService'
 import {getAllActivities} from 'core/activitiesService'
-import {getReports} from 'core/reportsService'
+import {getReports,} from 'core/reportsService'
 
 const styles = theme => ({
   cell: {
@@ -159,7 +159,7 @@ class AdvancedReport extends React.Component {
                   {reports.map(report => {
                     const m = moment(report.date)
                     return (
-                      <TableRow>
+                      <TableRow key={report._id}>
                         <TableCell className={classes.cell}>{m.format('D/MM/YYYY')}</TableCell>
                         <TableCell className={classes.cell}>{m.format('dddd')}</TableCell>
                         <TableCell className={classes.cell}>{report.startTime}</TableCell>
