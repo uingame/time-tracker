@@ -10,14 +10,17 @@ const styles = {
   }
 }
 
-const AppShell = ({classes, children}) => (
-  <div className={classes.root}>
-    {authService.getSignedInUser() && <Header />}
-    <main>
-      <ErrorDisplay />
-      {children}
-    </main>
-  </div>
-)
+const AppShell = ({classes, children}) => {
+  const user = authService.getSignedInUser()
+  return (
+    <div className={classes.root}>
+      {user && <Header isAdmin={user.isAdmin}/>}
+      <main>
+        <ErrorDisplay />
+        {children}
+      </main>
+    </div>
+  )
+}
 
 export default withStyles(styles)(AppShell)

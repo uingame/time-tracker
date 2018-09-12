@@ -26,7 +26,7 @@ export async function restoreAuth() {
 export async function signIn(username, password) {
   signOut()
   try {
-    const {data: {token, ...user}} = await apiClient.post('/auth/token', { username, password })
+    const {data: {token, user}} = await apiClient.post('/auth/token', { username, password })
     localStorage.setItem('token', token)
     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`
     signedInUser = user

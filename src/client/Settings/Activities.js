@@ -132,7 +132,8 @@ class Activities extends React.Component {
             headers={[{
               id: 'name',
               title: 'פעילות',
-              wide: true
+              wide: true,
+              focus: true
             }, {
               id: 'defaultHourlyQuote',
               title: 'מחיר שעתי',

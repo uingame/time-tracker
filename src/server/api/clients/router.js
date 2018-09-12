@@ -5,11 +5,12 @@ const makeEndpoint = require('../../common/makeEndpoint')
 const router = new express.Router()
 
 router.use(IsAuthenticated)
-router.use(IsAdmin)
 
 router.get('/', makeEndpoint(
   () => logic.getAllClients()
 ))
+
+router.use(IsAdmin)
 
 router.post('/', makeEndpoint(
   ({body}) => logic.addClient(body)

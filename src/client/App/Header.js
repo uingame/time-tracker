@@ -49,13 +49,13 @@ const NavLink = ({ to, children, className, activeClassName, ...rest }) => (
   />
 )
 
-const NavMenuItem = ({to, children, onClick}) => (
-  <MenuItem onClick={onClick}>
+const NavMenuItem = withRouter(({history, to, children, onClick}) => (
+  <MenuItem onClick={(e) => {history.push(to); onClick(e)}}>
     <NavLink to={to} style={{ textDecoration: 'none', color: 'inherit' }}>
       {isActive => children}
     </NavLink>
   </MenuItem>
-)
+))
 
 const NavButton = ({to, children}) => (
   <NavLink to={to} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -77,6 +77,7 @@ class AppHeader extends React.Component {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
+    isAdmin: PropTypes.bool.isRequired
   };
 
   handleMenu = event => {
@@ -94,7 +95,8 @@ class AppHeader extends React.Component {
 
   render() {
     const {anchorEl} = this.state
-    const {classes} = this.props
+    const {classes, isAdmin} = this.props
+
     return (
       <div className={classes.root}>
         <AppBar position="static">
@@ -102,10 +104,10 @@ class AppHeader extends React.Component {
             <Typography variant="title" color="inherit" className={classes.flex}>
               שמיר ייעוץ והדרכות
             </Typography>
-            <NavButton to='/clientsreport'>דוח לקוחות</NavButton>
-            <NavButton  to='/usersreport'>דוח עובדים</NavButton>
-            <NavButton  to='/advancedreport'>דוח מפורט</NavButton>
-            <NavButton  to='/timetracking'>דיווח שעות</NavButton>
+            {isAdmin && <NavButton to='/clientsreport'>דוח לקוחות</NavButton>}
+            {isAdmin && <NavButton to='/usersreport'>דוח עובדים</NavButton>}
+            {isAdmin && <NavButton to='/advancedreport'>דוח מפורט</NavButton>}
+            {!isAdmin && <NavButton to='/timetracking'>דיווח שעות</NavButton>}
             <IconButton
               aria-owns={open ? 'menu-appbar' : null}
               aria-haspopup="true"
@@ -128,10 +130,10 @@ class AppHeader extends React.Component {
               open={!!anchorEl}
               onClose={this.handleClose}
             >
-              <NavMenuItem to='/users' onClick={this.handleClose}>עובדים</NavMenuItem>
-              <NavMenuItem to='/clients' onClick={this.handleClose}>לקוחות</NavMenuItem>
-              <NavMenuItem to='/activities' onClick={this.handleClose}>פעילויות</NavMenuItem>
-              <Divider />
+              {isAdmin && <NavMenuItem to='/users' onClick={this.handleClose}>עובדים</NavMenuItem>}
+              {isAdmin && <NavMenuItem to='/clients' onClick={this.handleClose}>לקוחות</NavMenuItem>}
+              {isAdmin && <NavMenuItem to='/activities' onClick={this.handleClose}>פעילויות</NavMenuItem>}
+              {isAdmin && <Divider />}
               <MenuItem onClick={this.signOut}>יציאה</MenuItem>
             </Menu>
           </Toolbar>

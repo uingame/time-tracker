@@ -26,12 +26,7 @@ class App extends React.Component {
   }
 
   async init() {
-    const user = await authService.restoreAuth()
-    this.setState({user})
-  }
-
-  state = {
-    user: null
+    await authService.restoreAuth()
   }
 
   render() {

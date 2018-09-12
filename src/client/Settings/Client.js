@@ -48,7 +48,10 @@ class Client extends React.PureComponent {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
-    clientId: PropTypes.string.isRequired,
+    clientId: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.oneOf(['new'])
+    ]).isRequired,
     activities: PropTypes.array.isRequired,
     onUpdate: PropTypes.func.isRequired
   };
