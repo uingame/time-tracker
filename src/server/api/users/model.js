@@ -37,7 +37,9 @@ const schema = new mongoose.Schema({
   toObject: {
     transform: (doc, ret) => {
       delete ret.__v
+      delete ret.id
       delete ret.password
+      delete ret.isSystem
     },
     getters: true
   }

@@ -1,11 +1,25 @@
 const bcrypt = require('bcrypt')
-const {get, mapValues} = require('lodash')
+const {uniq, get, mapValues} = require('lodash')
 const Model = require('./model')
 const UserError = require('../../common/UserError')
 const counters = require('../../common/counters')
+const {getMultipleActivities} = require('../activities/logic')
+const {getMultipleClients} = require('../clients/logic')
 
 const SALT_ROUNDS = 12
 const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
+
+async function populate(user) {
+  const [clients, activities] = await Promise.all([
+    getMultipleClients(uniq(user.activities.map(a => a.clientId))),
+    getMultipleActivities(uniq(user.activities.map(a => a.activityId)))
+  ])
+  user.activities.forEach(a => {
+    a.clientName = clients.find(({id}) => Number(id) === a.clientId).name
+    a.activityName = activities.find(({id}) => id === a.activityId).name
+  })
+  return user
+}
 
 module.exports = {
 
@@ -24,7 +38,7 @@ module.exports = {
     if (!user) {
       throw new UserError('User not found')
     }
-    return user
+    return populate(user.toJSON())
   },
 
   async getUserByUsernameAndPassword(username, password) {
@@ -34,7 +48,7 @@ module.exports = {
       .exec()
 
     const isPasswordMatch = await bcrypt.compare(password, get(user, 'password', ''))
-    return isPasswordMatch ? user : undefined
+    return isPasswordMatch ? await populate(user.toJSON()) : undefined
   },
 
   async addUser(newUser) {
