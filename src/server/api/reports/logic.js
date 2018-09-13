@@ -1,4 +1,4 @@
-const {uniq, map, groupBy, mapValues, sumBy} = require('lodash')
+const {uniq, map, groupBy, mapValues, sumBy, get} = require('lodash')
 const Model = require('./model')
 const usersLogic = require('../users/logic')
 const clientsLogic = require('../clients/logic')
@@ -82,7 +82,8 @@ function populate(reports, users, clients, activities) {
 
 function calculateReportsTotalPrice(reports, client, activities) {
   return reports.reduce((ret, {activityId, duration}) => {
-    const {hourlyQuote} = client.activities.find(a => a.activityId === activityId)
+    const clientActivity = client.activities.find(a => a.activityId === activityId)
+    const hourlyQuote = get(clientActivity, 'hourlyQuote')
     const price = hourlyQuote || activities.find(({id}) => id === activityId).defaultHourlyQuote || 0
     return ret + price*duration
   }, 0)
