@@ -8,7 +8,8 @@ import ActivityIndicator from 'common/ActivityIndicator'
 import {getAllClients} from 'core/clientsService'
 import {getAllUsers} from 'core/usersService'
 import {getAllActivities} from 'core/activitiesService'
-import {getReports,} from 'core/reportsService'
+import {getReports} from 'core/reportsService'
+import {generateAdvancedReportCSV} from 'core/csvGenerator'
 
 const styles = theme => ({
   cell: {
@@ -73,6 +74,11 @@ class AdvancedReport extends React.Component {
     })
   }
 
+  downloadCSV() {
+    const {reports, startDate, endDate} = this.state
+    generateAdvancedReportCSV(reports, `report${startDate}-${endDate}.csv`)
+  }
+
   render() {
     const {classes} = this.props
     const {loading, reports, startDate, endDate, clients, clientsFilter, activities, activitiesFilter, users, usersFilter} = this.state
@@ -107,7 +113,7 @@ class AdvancedReport extends React.Component {
               displayField='name'
             />
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             <MultipleSelection
               label='פעילויות'
               disabled={loading}
@@ -135,6 +141,16 @@ class AdvancedReport extends React.Component {
               onClick={this.load}
             >
               הצג
+            </Button>
+          </Grid>
+          <Grid item xs={1}>
+            <Button
+              color='primary'
+              variant='contained'
+              disabled={loading || !startDate || !endDate}
+              onClick={this.downloadCSV}
+            >
+              CSV
             </Button>
           </Grid>
         </Grid>
