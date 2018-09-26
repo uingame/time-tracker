@@ -1,6 +1,6 @@
 const {mapValues} = require('lodash')
+const moment = require('moment')
 const Model = require('../reports/model')
-const activities = require('../activities/logic')
 const UserError = require('../../common/UserError')
 
 module.exports = {
@@ -18,7 +18,7 @@ module.exports = {
     firstTimestamp = new Date(Date.UTC(year, month-1, 1, 0, 0, 0)).toUTCString()
     lastTimestamp = new Date(Date.UTC(year, month, 1, 0, 0, 0)).toUTCString()
     const reports = await Model.find({
-      userId: user.id,
+      userId: user._id,
       date: {
         $gte: firstTimestamp,
         $lt: lastTimestamp
@@ -28,10 +28,11 @@ module.exports = {
   },
 
   async addTimeTrackingReport(user, newReport) {
+    validateReportDate(user, newReport.date)
     try {
       const report = await Model.create({
         ...newReport,
-        userId: user.id
+        userId: user._id
       })
       return report
     } catch (err) {
@@ -43,12 +44,13 @@ module.exports = {
   },
 
   async updateTimeTrackingReport(user, reportId, updatedFields) {
+    validateReportDate(user, updatedFields.date)
     delete updatedFields.createdAt
     updatedFields.modifiedAt = new Date()
     try {
       const report = await Model.findOneAndUpdate({
         _id: reportId,
-        userId: user.id
+        userId: user._id
       },
       updatedFields, {
         new: true,
@@ -69,7 +71,7 @@ module.exports = {
   async deleteTimeTrackingReport(user, reportId) {
     const {ok, n} = await Model.deleteOne({
       _id: reportId,
-      userId: user.id
+      userId: user._id
     })
     if (ok && n > 0) {
       return {success: true}
@@ -78,4 +80,19 @@ module.exports = {
     }
   }
 
+}
+
+function validateReportDate(user, reportDate) {
+  if (!reportDate) {
+    return
+  }
+
+  let firstAllowedDate = moment.utc({day: 1})
+  if (moment.utc().date() <= user.lastReportDay) {
+    firstAllowedDate = firstAllowedDate.add(-1, 'months')
+  }
+
+  if (moment.utc(reportDate).isBefore(firstAllowedDate)) {
+    throw new UserError(`Not allowed to update time tracking before ${firstAllowedDate}`)
+  }
 }
