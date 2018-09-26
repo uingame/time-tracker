@@ -122,6 +122,14 @@ class TimeTracking extends React.Component {
     return report._id.startsWith(EMPTY_PREFIX)
   }
 
+  shouldPreventEdit(report) {
+    return this.state.selectedMonth.locked || this.isEmpty(report)
+  }
+
+  shouldShowAddButton(report) {
+    return this.isLastInDay(report) && !this.state.selectedMonth.locked
+  }
+
   isNew(report) {
     return report._id.startsWith(NEW_PREFIX)
   }
@@ -293,8 +301,8 @@ class TimeTracking extends React.Component {
               }]}
               data={data}
               isNew={this.isNew}
-              allowAdd={this.isLastInDay}
-              preventEdit={this.isEmpty}
+              allowAdd={this.shouldShowAddButton}
+              preventEdit={this.shouldPreventEdit}
               onSave={this.saveReport}
               onDelete={this.deleteReport}
               onAdd={this.addAfter}
@@ -309,6 +317,10 @@ class TimeTracking extends React.Component {
 export default withStyles(styles)(TimeTracking);
 
 function getUserMonths(user) {
+  let firstUnlockedDate = moment.utc({day: 1})
+  if (moment.utc().date() <= user.lastReportDay) {
+    firstUnlockedDate = firstUnlockedDate.add(-1, 'months')
+  }
   const lastDate = new Date()
   lastDate.setUTCMonth(lastDate.getUTCMonth() + EXTRA_MONTHS)
   const startDate = new Date(user.startDate)
@@ -328,7 +340,8 @@ function getUserMonths(user) {
         year,
         month,
         numberOfDays: m.numberOfDays,
-        display: m.format('YYYY MMMM')
+        display: m.format('YYYY MMMM'),
+        locked: m.isBefore(firstUnlockedDate)
       })
     }
   }
