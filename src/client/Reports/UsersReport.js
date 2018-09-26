@@ -7,6 +7,7 @@ import ActivityIndicator from 'common/ActivityIndicator'
 
 import {getAllUsers} from 'core/usersService'
 import {getReports, getFirstActivityDate} from 'core/reportsService'
+import {generateUsersReportCSV} from 'core/csvGenerator'
 
 const styles = theme => ({
   cell: {
@@ -73,6 +74,11 @@ class UsersReport extends React.Component {
     })
   }
 
+  downloadCSV() {
+    const {reportsByUser, startDate} = this.state
+    generateUsersReportCSV(reportsByUser, `users${startDate}.csv`)
+  }
+
   render() {
     const {classes} = this.props
     const {loading, months, startDate, reportsByUser, users, usersFilter} = this.state
@@ -109,6 +115,16 @@ class UsersReport extends React.Component {
               onClick={this.load}
             >
               הצג
+            </Button>
+          </Grid>
+          <Grid item xs={1}>
+            <Button
+              color='primary'
+              variant='contained'
+              disabled={loading || !startDate}
+              onClick={this.downloadCSV}
+            >
+              CSV
             </Button>
           </Grid>
         </Grid>
