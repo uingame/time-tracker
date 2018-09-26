@@ -96,7 +96,7 @@ class LoginForm extends Component {
       <Paper className={classes.root}>
         <form className={classes.form} onSubmit={this.performLogin}>
           <Typography variant='title'>
-            שמיר ייעוץ והדרכה
+            שמיר יעוץ והדרכה
           </Typography>
           <TextField
             name='username'

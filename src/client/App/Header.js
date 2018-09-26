@@ -102,7 +102,7 @@ class AppHeader extends React.Component {
         <AppBar position="static">
           <Toolbar>
             <Typography variant="title" color="inherit" className={classes.flex}>
-              שמיר ייעוץ והדרכות
+              שמיר יעוץ והדרכה
             </Typography>
             {isAdmin && <NavButton to='/clientsreport'>דוח לקוחות</NavButton>}
             {isAdmin && <NavButton to='/usersreport'>דוח עובדים</NavButton>}
