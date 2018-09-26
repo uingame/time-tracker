@@ -5,7 +5,7 @@ const {getMultipleActivities, getAllActivities} = require('../activities/logic')
 const UserError = require('../../common/UserError')
 const counters = require('../../common/counters')
 
-const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
+const DUPLICATE_KEY_REG_EXP = /index: (?:.*\$)?([A-Za-z]*)_-?1/
 const ACTIVITY_ID_REG_EXP = /activityId: '(\w*)'/
 
 function populateActivites(client, activities) {

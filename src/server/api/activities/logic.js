@@ -4,7 +4,7 @@ const ClientsModel = require('../clients/model')
 const UsersModel = require('../users/model')
 const UserError = require('../../common/UserError')
 
-const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
+const DUPLICATE_KEY_REG_EXP = /index: (?:.*\$)?([A-Za-z]*)_-?1/
 
 module.exports = {
 

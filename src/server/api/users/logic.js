@@ -7,7 +7,7 @@ const {getMultipleActivities} = require('../activities/logic')
 const {getMultipleClients} = require('../clients/logic')
 
 const SALT_ROUNDS = 12
-const DUPLICATE_KEY_REG_EXP = /index: ([A-Za-z]*)/
+const DUPLICATE_KEY_REG_EXP = /index: (?:.*\$)?([A-Za-z]*)_-?1/
 
 async function populate(user) {
   const [clients, activities] = await Promise.all([
