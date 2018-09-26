@@ -18,9 +18,9 @@ const schema = new mongoose.Schema({
   isAdmin: {type: Boolean, default: false},
   firstName: {type: String, required: true},
   lastName: {type: String, required: true},
-  idNumber: {type: Number, required: true, unique: true, sparse: true},
-  address: {type: String, required: true},
-  phone: {type: String, required: true},
+  idNumber: {type: Number, unique: true, sparse: true},
+  address: {type: String},
+  phone: {type: String},
   email: {type: mongoose.SchemaTypes.Email, required: true, unique: true, sparse: true},
   startDate: {type: Date, required: true},
 
