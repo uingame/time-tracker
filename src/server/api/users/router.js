@@ -27,4 +27,8 @@ router.delete('/:id', makeEndpoint(
   ({params: {id}}) => logic.archiveUser(id)
 ))
 
+router.post('/:id/resetpassword', makeEndpoint(
+  ({params: {id}}) => logic.resetPassword(id)
+))
+
 module.exports = router

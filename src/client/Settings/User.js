@@ -11,6 +11,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
+import Button from '@material-ui/core/Button';
 
 import IconButton from '@material-ui/core/IconButton'
 import SaveIcon from '@material-ui/icons/Save'
@@ -39,7 +40,6 @@ const styles = theme => ({
 const EMPTY_USER = {
   _id: '',
   username: '',
-  password: '',
   isAdmin: false,
   firstName: '',
   lastName: '',
@@ -206,6 +206,18 @@ class User extends React.PureComponent {
         activity => !(activity.clientId === clientId && activity.activityId === activityId)
       ))
     }
+  }
+
+  async resetPassword() {
+    this.setState({saving : true})
+    const {_id} = this.state.user
+    try {
+      await usersService.resetPassword(_id)
+    } catch (e) {
+      console.log(e)
+    }
+
+    this.setState({saving: false})
   }
 
   async save() {
@@ -387,14 +399,16 @@ class User extends React.PureComponent {
             />
           </Grid>
           <Grid item xs={6}>
-            <TextField
-              label='סיסמא'
-              value={user.password || ''}
-              onChange={e => this.setValue('password', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('password')}
-            />
+            {user._id && (
+              <Button
+                color='primary'
+                variant='contained'
+                disabled={saving}
+                onClick={this.resetPassword}
+              >
+                איפוס סיסמא
+              </Button>
+            )}
           </Grid>
         </Grid>
         <Grid item>

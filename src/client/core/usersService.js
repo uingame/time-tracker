@@ -24,3 +24,8 @@ export async function deleteUser(id) {
   const {data} = await apiClient.delete(`/users/${id}`)
   return data
 }
+
+export async function resetPassword(id) {
+  const {data} = await apiClient.post(`/users/${id}/resetpassword`)
+  return data
+}

@@ -1,8 +1,10 @@
 const bcrypt = require('bcrypt')
+const randomString = require('random-string')
 const {uniq, get, mapValues} = require('lodash')
 const Model = require('./model')
 const UserError = require('../../common/UserError')
 const counters = require('../../common/counters')
+const mailer = require('../../common/mailer')
 const {getMultipleActivities} = require('../activities/logic')
 const {getMultipleClients} = require('../clients/logic')
 
@@ -19,6 +21,29 @@ async function populate(user) {
     a.activityName = activities.find(({id}) => id === a.activityId).name
   })
   return user
+}
+
+async function sendPasswordMail(user, password) {
+  try {
+    await mailer.sendMail({
+      from: 'no-reply@uingame.co.il',
+      to: user.email,
+      subject: 'Your Time-Tracker password was reset',
+      text: `
+        Your Time-Tracker password was reset.
+
+        Your new credentials are:
+        Email: ${user.email}
+        Username: ${user.username}
+        Password: ${password}
+
+        Please make sure to change your password when you sign in.
+      `
+    })
+  } catch (e) {
+    console.error(`Error while sending mail to ${user.email}: ${e.message}`)
+    console.debug(e)
+  }
 }
 
 module.exports = {
@@ -52,7 +77,8 @@ module.exports = {
   },
 
   async addUser(newUser) {
-    const passwordHash = (!newUser.password) ? undefined : await bcrypt.hash(newUser.password, SALT_ROUNDS)
+    const password = randomString()
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
     const _id = await counters.getNextId('users')
     try {
       const user = await Model.create({
@@ -61,6 +87,7 @@ module.exports = {
         password: passwordHash,
         isSystem: false
       })
+      sendPasswordMail(user, password)
       return user
     } catch (err) {
       counters.cancelId('users', _id)
@@ -79,10 +106,8 @@ module.exports = {
   async updateUser(id, updatedFields) {
     delete updatedFields.isSystem
     delete updatedFields.createdAt
+    delete updatedFields.password
     updatedFields.modifiedAt = new Date()
-    if (updatedFields.password === '') {
-      delete updatedFields.password
-    }
     try {
       const user = await Model.findByIdAndUpdate(id, updatedFields, {
         new: true,
@@ -111,6 +136,25 @@ module.exports = {
       throw err
     }
 
+  },
+
+  async resetPassword(userId) {
+    const password = randomString()
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
+
+    const user = await Model.findByIdAndUpdate(userId, {
+      password: passwordHash
+    }, {
+      new: true
+    }).ne('isArchived', true).exec()
+
+    if (!user) {
+      throw new UserError('User not found')
+    }
+
+    sendPasswordMail(user, password)
+
+    return {success: true};
   },
 
   async changePassword(user, oldPassword, newPassword) {

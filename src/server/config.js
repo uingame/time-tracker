@@ -7,5 +7,8 @@ module.exports = {
   jwtIssuer: process.env.JWT_ISSUER || 'uingame',
   jwtExpiration: process.env.JWT_EXPIRATION || '30 days',
 
-  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost/time-tracker'
+  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost/time-tracker',
+
+  sendGridUserName: process.env.SENDGRID_USERNAME || '',
+  sendGridPassword: process.env.SENDGRID_PASSWORD || ''
 }

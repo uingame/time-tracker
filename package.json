@@ -27,9 +27,12 @@
     "moment": "^2.22.2",
     "mongoose": "^5.2.12",
     "mongoose-type-email": "^1.0.9",
+    "nodemailer": "^4.6.8",
+    "nodemailer-sendgrid-transport": "^0.2.0",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "random-string": "^0.2.0"
   },
   "devDependencies": {
     "@babel/polyfill": "^7.0.0",
