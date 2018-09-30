@@ -5,6 +5,7 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const {Strategy: JwtStrategy, ExtractJwt} = require('passport-jwt')
 const usersLogic = require('../users/logic')
+const makeEndpoint = require('../../common/makeEndpoint')
 
 const config = require('../../config')
 
@@ -41,6 +42,11 @@ router.get('/user',
     res.json(req.user)
   }
 )
+
+router.post('/changepassword', passport.authenticate('jwt', {session: false}), makeEndpoint(
+  ({user, body}) => usersLogic.changePassword(user, body.oldPassword, body.newPassword)
+))
+
 
 const JWT_OPTIONS = {
   issuer: config.jwtIssuer,

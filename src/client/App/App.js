@@ -16,6 +16,7 @@ import Users from 'Settings/Users'
 import Activities from 'Settings/Activities'
 import Clients from 'Settings/Clients'
 import LoginForm from 'Auth/LoginForm'
+import ChangePassword from 'Auth/ChangePassword'
 
 import * as authService from 'core/authService'
 
@@ -38,10 +39,11 @@ class App extends React.Component {
             <Switch>
               <Route exact path="/" render={() => <Redirect to={getRedirectUrl()}/>} />
               <Route path="/login" component={LoginForm} />
+              <PrivateRoute path="/changepassword" component={ChangePassword} />
+              <PrivateRoute path="/timetracking" component={TimeTracking} />
               <PrivateRoute adminOnly path="/clientsreport" component={ClientsReport} />
               <PrivateRoute adminOnly path="/usersreport" component={UsersReport} />
               <PrivateRoute adminOnly path="/advancedreport" component={AdvancedReport} />
-              <PrivateRoute path="/timetracking" component={TimeTracking} />
               <PrivateRoute adminOnly path="/users" component={Users} />
               <PrivateRoute adminOnly path="/clients" component={Clients} />
               <PrivateRoute adminOnly path="/activities" component={Activities} />

@@ -49,4 +49,18 @@ export function signOut() {
   signedInUser = null
 }
 
+export async function changePassword(oldPassword, newPassword) {
+  try {
+    const {data} = await apiClient.post('/auth/changepassword', { oldPassword, newPassword })
+    return data.success
+  } catch (err) {
+    const errorFromServer = get(err, 'response.data.error')
+    if (errorFromServer) {
+      throw new Error(errorFromServer)
+    } else {
+      throw err
+    }
+  }
+}
+
 export const getSignedInUser = () => signedInUser

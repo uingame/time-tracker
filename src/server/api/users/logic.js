@@ -113,6 +113,26 @@ module.exports = {
 
   },
 
+  async changePassword(user, oldPassword, newPassword) {
+    const rawUser = await Model.findById(user._id).ne('isArchived', true).exec()
+    if (!rawUser) {
+      throw new UserError('User not found')
+    }
+    const isPasswordMatch = await bcrypt.compare(oldPassword, get(rawUser, 'password', ''))
+    if (!isPasswordMatch) {
+      throw new UserError('Incorrect password', {
+        oldPassword: 'Incorrect password'
+      })
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS)
+    await Model.findByIdAndUpdate(user._id, {
+      password: newPasswordHash
+    }).ne('isArchived', true).exec()
+
+    return {success: true}
+  },
+
   async archiveUser(id) {
     const update = {
       isArchived: true,
