@@ -14,7 +14,7 @@ const AppShell = ({classes, children}) => {
   const user = authService.getSignedInUser()
   return (
     <div className={classes.root}>
-      {user && <Header isAdmin={user.isAdmin}/>}
+      {user && <Header isAdmin={user.isAdmin} displayName={user.displayName}/>}
       <main>
         <ErrorDisplay />
         {children}

@@ -77,7 +77,8 @@ class AppHeader extends React.Component {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
-    isAdmin: PropTypes.bool.isRequired
+    isAdmin: PropTypes.bool.isRequired,
+    displayName: PropTypes.string.isRequired
   };
 
   handleMenu = event => {
@@ -95,14 +96,14 @@ class AppHeader extends React.Component {
 
   render() {
     const {anchorEl} = this.state
-    const {classes, isAdmin} = this.props
+    const {classes, isAdmin, displayName} = this.props
 
     return (
       <div className={classes.root}>
         <AppBar position="static">
           <Toolbar>
             <Typography variant="title" color="inherit" className={classes.flex}>
-              שמיר יעוץ והדרכה
+              שמיר יעוץ והדרכה - {displayName}
             </Typography>
             {isAdmin && <NavButton to='/clientsreport'>דוח לקוחות</NavButton>}
             {isAdmin && <NavButton to='/usersreport'>דוח עובדים</NavButton>}
