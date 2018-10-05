@@ -92,7 +92,6 @@ class Activities extends React.Component {
         {
           _id: NEW_PREFIX + (dummyIdCouter++),
           name: '',
-          defaultHourlyQuote: 0,
           notes: '',
         },
         ...this.state.activities
@@ -134,10 +133,6 @@ class Activities extends React.Component {
               title: 'פעילות',
               wide: true,
               focus: true
-            }, {
-              id: 'defaultHourlyQuote',
-              title: 'מחיר שעתי',
-              type: 'number'
             }, {
               id: 'notes',
               title: 'הערות',

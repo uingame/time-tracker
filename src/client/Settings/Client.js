@@ -338,11 +338,10 @@ class Client extends React.PureComponent {
                 if (!activity) {
                   return null
                 }
-                const {name, defaultHourlyQuote} = activity
                 return (
                   <TableRow key={activityId}>
                     <TableCell className={classes.cell}>
-                      {name}
+                      {activity.name}
                     </TableCell>
                     <TableCell className={classes.cell}>
                       <TextField
@@ -350,7 +349,6 @@ class Client extends React.PureComponent {
                         min='0'
                         disabled={saving}
                         value={hourlyQuote || ''}
-                        placeholder={defaultHourlyQuote.toString()}
                         onChange={e => this.updateHourlyQuote(activityId, e.target.value)}
                         error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
                       />

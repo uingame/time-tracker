@@ -51,7 +51,7 @@ async function getReports(startDate, endDate, group, filter) {
       return {
         reports,
         totalHours: sumBy(reports, r => r.duration),
-        totalPrice: calculateReportsTotalPrice(reports, client, activities)
+        totalPrice: calculateReportsTotalPrice(reports, client)
       }
     })
   } else if (group === 'user') {
@@ -80,11 +80,11 @@ function populate(reports, users, clients, activities) {
   })
 }
 
-function calculateReportsTotalPrice(reports, client, activities) {
+function calculateReportsTotalPrice(reports, client) {
   return reports.reduce((ret, {activityId, duration}) => {
     const clientActivity = client.activities.find(a => a.activityId === activityId)
     const hourlyQuote = get(clientActivity, 'hourlyQuote')
-    const price = hourlyQuote || activities.find(({id}) => id === activityId).defaultHourlyQuote || 0
+    const price = hourlyQuote || 0
     return ret + price*duration
   }, 0)
 }

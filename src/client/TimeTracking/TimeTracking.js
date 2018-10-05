@@ -230,7 +230,6 @@ class TimeTracking extends React.Component {
           _id: NEW_PREFIX + (dummyIdCouter++),
           date: report.date,
           name: '',
-          defaultHourlyQuote: 0,
           notes: ''
         },
         ...data.slice(idx+1)
