@@ -62,7 +62,7 @@ class User extends React.PureComponent {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
-    userId: PropTypes.string.isRequired,
+    userId: PropTypes.number.isRequired,
     clients: PropTypes.array.isRequired,
     onUpdate: PropTypes.func.isRequired
   };
