@@ -9,6 +9,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Button from '@material-ui/core/Button';
 
 import IconButton from '@material-ui/core/IconButton'
 import SaveIcon from '@material-ui/icons/Save'
@@ -22,6 +23,9 @@ import * as clientsService from 'core/clientsService'
 
 
 const styles = theme => ({
+  flatButton: {
+    margin: theme.spacing.unit
+  },
   title: {
     padding: theme.spacing.unit * 2,
   },
@@ -70,7 +74,13 @@ class Client extends React.PureComponent {
       this.state = {
         ...this.state,
         loading: false,
-        client: EMPTY_CLIENT
+        client: {
+          ...EMPTY_CLIENT,
+          activities: props.activities.map(({_id}) =>({
+            activityId: _id,
+            hourlyQuote: ''
+          }))
+        }
       }
     } else {
       this.fetchClient(props.clientId)
@@ -85,7 +95,13 @@ class Client extends React.PureComponent {
           loading: false,
           saving: false,
           errorFields: [],
-          client: EMPTY_CLIENT
+          client: {
+            ...EMPTY_CLIENT,
+            activities: nextProps.activities.map(({_id}) =>({
+              activityId: _id,
+              hourlyQuote: ''
+            }))
+          }
         })
       } else {
         this.setState({
@@ -162,6 +178,22 @@ class Client extends React.PureComponent {
         errorFields: this.state.errorFields.filter(field => field !== errKey)
       })
     }
+  }
+
+  selectAllActivities() {
+    const {activities} = this.props
+    const {client} = this.state
+
+    this.setValue('activities', activities.map(({_id}) =>
+      client.activities.find(({activityId}) => activityId === _id) || {
+        activityId: _id,
+        hourlyQuote: ''
+      }
+    ))
+  }
+
+  deselectAllActivities() {
+    this.setValue('activities', [])
   }
 
   async save() {
@@ -315,14 +347,38 @@ class Client extends React.PureComponent {
           </Typography>
         </Grid>
         <Grid item>
-          <MultipleSelection
-            label='פעילויות'
-            disabled={saving}
-            value={client.activities.map(x => x.activityId)}
-            onChange={this.updateActivities}
-            data={activities}
-            displayField='name'
-          />
+        </Grid>
+        <Grid container>
+          <Grid item xs={10}>
+            <MultipleSelection
+              label='פעילויות'
+              disabled={saving}
+              value={client.activities.map(x => x.activityId)}
+              onChange={this.updateActivities}
+              data={activities}
+              displayField='name'
+            />
+          </Grid>
+          <Grid item xs={1}>
+            <Button
+              color='primary'
+              className={classes.flatButton}
+              disabled={saving}
+              onClick={this.selectAllActivities}
+            >
+              סמן הכל
+            </Button>
+          </Grid>
+          <Grid item xs={1}>
+            <Button
+              color='primary'
+              className={classes.flatButton}
+              disabled={saving}
+              onClick={this.deselectAllActivities}
+            >
+              נקה
+            </Button>
+          </Grid>
         </Grid>
         <Grid item>
           <Table className={classes.table}>

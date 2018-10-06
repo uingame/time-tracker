@@ -18,7 +18,6 @@ import User from './User'
 
 import * as usersService from 'core/usersService'
 import * as clientsService from 'core/clientsService'
-import * as activitiesService from 'core/activitiesService'
 
 const styles = theme => ({
   listItemText: {
@@ -39,7 +38,6 @@ class Users extends React.Component {
     loading: true,
     clients: [],
     filter: '',
-    activities: [],
     selectedId: null
   }
 
@@ -49,15 +47,13 @@ class Users extends React.Component {
   }
 
   async init() {
-    const [clients, activities, users] = await Promise.all([
+    const [clients, users] = await Promise.all([
       clientsService.getAllClients(),
-      activitiesService.getAllActivities(),
       usersService.getAllUsers()
     ])
     this.setState({
       loading: false,
       clients,
-      activities,
       users
     })
   }
@@ -110,7 +106,7 @@ class Users extends React.Component {
 
   render() {
     const {classes} = this.props
-    const {loading, users, selectedId, activities, clients, filter} = this.state
+    const {loading, users, selectedId, clients, filter} = this.state
 
     if (loading) {
       return <ActivityIndicator />
@@ -149,7 +145,6 @@ class Users extends React.Component {
               {selectedId && <Paper>
                 <User
                   userId={selectedId}
-                  activities={activities}
                   clients={clients}
                   onUpdate={this.onUpdate}
                   onDelete={this.onDelete}

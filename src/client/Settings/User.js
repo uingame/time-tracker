@@ -26,6 +26,9 @@ import { MenuItem } from '@material-ui/core';
 
 
 const styles = theme => ({
+  flatButton: {
+    margin: theme.spacing.unit
+  },
   title: {
     padding: theme.spacing.unit * 2,
   },
@@ -62,7 +65,10 @@ class User extends React.PureComponent {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
-    userId: PropTypes.number.isRequired,
+    userId: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.oneOf(['new'])
+    ]).isRequired,
     clients: PropTypes.array.isRequired,
     onUpdate: PropTypes.func.isRequired
   };
@@ -82,7 +88,19 @@ class User extends React.PureComponent {
       this.state = {
         ...this.state,
         loading: false,
-        user: EMPTY_USER
+        selectedClients: props.clients,
+        user: {
+          ...EMPTY_USER,
+          activities: props.clients.reduce((ret, {_id, activities}) => {
+            activities && activities.forEach(({activityId}) => {
+              ret.push({
+                clientId: _id,
+                activityId
+              })
+            })
+            return ret
+          }, [])
+        }
       }
     } else {
       this.fetchUser(props.userId)
@@ -92,12 +110,25 @@ class User extends React.PureComponent {
   componentWillReceiveProps(nextProps) {
     if (nextProps.userId !== this.props.userId) {
       if (nextProps.userId === 'new') {
+        const {clients} = nextProps
         this.setState({
           ...this.state,
           loading: false,
           saving: false,
           errorFields: [],
-          user: EMPTY_USER
+          selectedClients: clients,
+          user: {
+            ...EMPTY_USER,
+            activities: clients.reduce((ret, {_id, activities}) => {
+              activities && activities.forEach(({activityId}) => {
+                ret.push({
+                  clientId: _id,
+                  activityId
+                })
+              })
+              return ret
+            }, [])
+          }
         })
       } else {
         this.setState({
@@ -145,7 +176,7 @@ class User extends React.PureComponent {
     this.setValue('activities', e.target.value.map(id => (
       this.state.user.activities.find(({activityId}) => activityId === id) || {
         activityId: id,
-        hourlyQuote: this.props.activities.find(({_id}) => _id === id).defaultHourlyQuote
+        hourlyQuote: ''
       }
     )))
 
@@ -206,6 +237,34 @@ class User extends React.PureComponent {
         activity => !(activity.clientId === clientId && activity.activityId === activityId)
       ))
     }
+  }
+
+  selectAllActivities() {
+    const {clients} = this.props
+    const {user: {activities}} = this.state
+    this.setState({
+      selectedClients: clients
+    })
+
+    this.setValue('activities', clients.reduce((ret, {_id, activities}) => {
+      activities && activities.forEach(({activityId}) => {
+        if (!ret.some(x => x.clientId === _id && x.activityId === activityId)) {
+          ret.push({
+            clientId: _id,
+            activityId
+          })
+        }
+      })
+      return ret
+    }, activities || []))
+  }
+
+  deselectAllActivities() {
+    this.setState({
+      selectedClients: []
+    })
+
+    this.setValue('activities', [])
   }
 
   async resetPassword() {
@@ -472,15 +531,37 @@ class User extends React.PureComponent {
             פעילויות
           </Typography>
         </Grid>
-        <Grid item>
-          <MultipleSelection
-            label='לקוחות'
-            disabled={saving}
-            value={selectedClients.map(client => client._id)}
-            onChange={this.updateSelectedClients}
-            data={clients}
-            displayField='name'
-          />
+        <Grid container>
+          <Grid item xs={10}>
+            <MultipleSelection
+              label='לקוחות'
+              disabled={saving}
+              value={selectedClients.map(client => client._id)}
+              onChange={this.updateSelectedClients}
+              data={clients}
+              displayField='name'
+            />
+          </Grid>
+          <Grid item xs={1}>
+            <Button
+              color='primary'
+              className={classes.flatButton}
+              disabled={saving}
+              onClick={this.selectAllActivities}
+            >
+              סמן הכל
+            </Button>
+          </Grid>
+          <Grid item xs={1}>
+            <Button
+              color='primary'
+              className={classes.flatButton}
+              disabled={saving}
+              onClick={this.deselectAllActivities}
+            >
+              נקה
+            </Button>
+          </Grid>
         </Grid>
         <Grid item>
         <Table className={classes.table}>
@@ -488,7 +569,7 @@ class User extends React.PureComponent {
             <TableRow>
               <TableCell className={classes.cell}>בית ספר</TableCell>
               <TableCell className={classes.cell}>פעילות</TableCell>
-              <TableCell className={classes.cell}>מורשה</TableCell>
+              <TableCell className={classes.cell}>שיוך</TableCell>
               <TableCell className={classes.cell}>סוג עובד</TableCell>
               <TableCell className={classes.cell}>תעריף שעתי</TableCell>
               <TableCell className={classes.cell}>תעריף נסיעות</TableCell>
