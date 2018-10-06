@@ -14,6 +14,7 @@ import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete'
 import EditIcon from '@material-ui/icons/Edit'
+import FilterNoneIcon from '@material-ui/icons/FilterNone'
 import SaveIcon from '@material-ui/icons/Save'
 import UndoIcon from '@material-ui/icons/Undo'
 
@@ -76,7 +77,9 @@ class EditableTable extends React.Component {
     isNew: PropTypes.func,
     preventEdit: PropTypes.func,
     onDelete: PropTypes.func.isRequired,
-    onSave: PropTypes.func.isRequired
+    onSave: PropTypes.func.isRequired,
+    onDuplicate: PropTypes.func,
+
   }
 
   static defaultProps = {
@@ -134,6 +137,7 @@ class _EditableRow extends React.Component {
     isNew: PropTypes.bool,
     onDelete: PropTypes.func.isRequired,
     onSave: PropTypes.func.isRequired,
+    onDuplicate: PropTypes.func,
     preventEdit: PropTypes.bool
   }
 
@@ -244,7 +248,7 @@ class _EditableRow extends React.Component {
   }
 
   render() {
-    const {classes, headers, preventEdit} = this.props
+    const {classes, headers, preventEdit, onDuplicate} = this.props
     const {edit, saving, data, errorFields} = this.state
     return (
       <TableRow>
@@ -280,6 +284,9 @@ class _EditableRow extends React.Component {
         <TableCell className={classes.smallCell}>
           {(!edit && !saving && !preventEdit) && (
             <React.Fragment>
+              {onDuplicate && <IconButton onClick={() => onDuplicate(data)}>
+                <FilterNoneIcon />
+              </IconButton>}
               <IconButton onClick={this.edit}>
                 <EditIcon />
               </IconButton>
@@ -294,9 +301,9 @@ class _EditableRow extends React.Component {
               <IconButton onClick={this.save}>
                 <SaveIcon />
               </IconButton>
-              {<IconButton onClick={this.discardChanged}>
+              <IconButton onClick={this.discardChanged}>
                 <UndoIcon />
-              </IconButton>}
+              </IconButton>
             </React.Fragment>
           )}
         </TableCell>

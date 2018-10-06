@@ -132,7 +132,22 @@ class TimeTracking extends React.Component {
           notes: '',
         },
         ...this.state.reports
-      ],
+      ]
+    })
+  }
+
+  duplicate(report) {
+    const {reports} = this.state
+    const idx = reports.indexOf(({_id}) => _id === report._id)
+    this.setState({
+      reports: [
+        ...this.state.reports.slice(0, idx),
+        {
+          ...report,
+          _id: NEW_PREFIX + (dummyIdCouter++)
+        },
+        ...this.state.reports.slice(idx)
+      ]
     })
   }
 
@@ -257,6 +272,7 @@ class TimeTracking extends React.Component {
                 preventEdit={this.shouldPreventEdit}
                 onSave={this.saveReport}
                 onDelete={this.deleteReport}
+                onDuplicate={this.duplicate}
               />
             </Paper>
           )}
