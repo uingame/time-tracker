@@ -23,7 +23,9 @@ module.exports = {
         $gte: firstTimestamp,
         $lt: lastTimestamp
       }
-    }).exec()
+    })
+      .sort('date startTime')
+      .exec()
     return reports
   },
 

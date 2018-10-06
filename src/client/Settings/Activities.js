@@ -1,5 +1,5 @@
 import React from 'react';
-import {isFunction, without} from 'lodash';
+import {without} from 'lodash';
 import PropTypes from 'prop-types';
 
 import withStyles from '@material-ui/core/styles/withStyles';

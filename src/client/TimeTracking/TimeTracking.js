@@ -3,6 +3,9 @@ import PropTypes from 'prop-types'
 import {get, without} from 'lodash'
 import withStyles from '@material-ui/core/styles/withStyles';
 import Paper from '@material-ui/core/Paper';
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
+import AddIcon from '@material-ui/icons/Add'
 
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -38,6 +41,12 @@ const styles = theme => ({
   input: {
     fontSize: '1.25rem',
     direction: 'rtl'
+  },
+  newIcon: {
+    marginLeft: theme.spacing.unit
+  },
+  fullWidth: {
+    width: '100%'
   }
 });
 
@@ -55,7 +64,7 @@ class TimeTracking extends React.Component {
     clients: [],
     activities: [],
     selectedMonth: null,
-    data: []
+    reports: []
   }
 
   constructor(props) {
@@ -91,30 +100,9 @@ class TimeTracking extends React.Component {
       loadingMonth: true
     })
     const reports = await timetrackingService.getMonthTimeTracking(selectedMonth.month, selectedMonth.year)
-    let m = moment.utc({year: selectedMonth.year, month: selectedMonth.month-1})
-    const data = []
-    while (m.month() === selectedMonth.month-1) {
-      const datenumber = m.date()
-      const dayReports = reports.filter(({date}) => moment.utc(date).date() === datenumber)
-      if (dayReports.length === 0) {
-        data.push({
-          _id: EMPTY_PREFIX + datenumber,
-          datenumber,
-          date: m.toISOString(),
-          weekday: m.format('dddd')
-        })
-      } else {
-        data.push(...dayReports.map((r, idx) => ({
-          ...r,
-          datenumber: idx === 0 ? datenumber : '',
-          weekday: idx === 0 ? m.format('dddd') : ''
-        })))
-      }
-      m = m.add(1, 'd')
-    }
     this.setState({
       loadingMonth: false,
-      data
+      reports
     })
   }
 
@@ -126,37 +114,42 @@ class TimeTracking extends React.Component {
     return this.state.selectedMonth.locked || this.isEmpty(report)
   }
 
-  shouldShowAddButton(report) {
-    return this.isLastInDay(report) && !this.state.selectedMonth.locked
-  }
-
   isNew(report) {
     return report._id.startsWith(NEW_PREFIX)
   }
 
-  isLastInDay(report) {
-    const {data} = this.state
-    const idx = data.findIndex(({_id}) => _id === report._id)
-    return get(data[idx], 'date') !== get(data[idx+1], 'date')
+  addNewReport() {
+    this.setState({
+      reports: [
+        {
+          _id: NEW_PREFIX + (dummyIdCouter++),
+          date: '',
+          startTime: '',
+          endTime: '',
+          duration: '',
+          clientId: '',
+          activityId: '',
+          notes: '',
+        },
+        ...this.state.reports
+      ],
+    })
   }
 
   async saveReport(report) {
-    const {_id, datenumber, weekday, userId, ...reportData} = report
+    const {_id, userId, ...reportData} = report
     const isNew = this.isNew(report)
     const updatedReport = isNew ?
       await timetrackingService.addTimeTrackingReport(reportData) :
       await timetrackingService.updateTimeTrackingReport(_id, reportData)
 
-    updatedReport.datenumber = datenumber
-    updatedReport.weekday = weekday
-
-    const {data} = this.state
-    const idx = data.findIndex(r => r._id === _id)
+    const {reports} = this.state
+    const idx = reports.findIndex(r => r._id === _id)
     this.setState({
-      data : [
-        ...data.slice(0, idx),
+      reports : [
+        ...reports.slice(0, idx),
         updatedReport,
-        ...data.slice(idx+1)
+        ...reports.slice(idx+1)
       ]
     })
   }
@@ -167,148 +160,108 @@ class TimeTracking extends React.Component {
       await timetrackingService.deleteTimeTrackingReport(report._id)
     }
 
-    if (this.isEmpty(report)) {
-      return
-    }
-
-    const {data} = this.state
-    const idx = data.findIndex(r => r === report)
-
-    if (!report.datenumber) { // Not the first line in this date
-      this.setState({
-        data: without(data, report)
-      })
-    } else if (get(data[idx+1], 'datenumber')) { // This is the one and only report in this date
-      this.setState({
-        data: [
-          ...data.slice(0, idx),
-          {
-            _id: EMPTY_PREFIX + report.datenumber,
-            datenumber: report.datenumber,
-            date: report.date,
-            weekday: report.weekday
-          },
-          ...data.slice(idx+1)
-        ]
-      })
-    } else { // This is the first of multiple report in this date
-      this.setState({
-        data: [
-          ...data.slice(0, idx),
-          {
-            ...data[idx+1],
-            datenumber: report.datenumber,
-            weekday: report.weekday,
-          },
-          ...data.slice(idx+2)
-        ]
-      })
-    }
-
+    this.setState({
+      reports: without(this.state.reports, report)
+    })
   }
 
-  addAfter(report) {
-    const {data} = this.state
-    const idx = data.findIndex(r => r === report)
-    if (this.isEmpty(report)) {
-      this.setState({
-        data: [
-          ...data.slice(0, idx),
-          {
-            ...report,
-            _id: NEW_PREFIX + (dummyIdCouter++)
-          },
-          ...data.slice(idx+1)
-        ]
-      })
-      return
+  getReportWeekday(report) {
+    if (!get(report, 'date')) {
+      return ''
     }
-    this.setState({
-      data: [
-        ...data.slice(0, idx+1),
-        {
-          _id: NEW_PREFIX + (dummyIdCouter++),
-          date: report.date,
-          name: '',
-          notes: ''
-        },
-        ...data.slice(idx+1)
-      ]
-    })
+    try {
+      return moment(report.date).format('dddd')
+    } catch (err) {
+      console.error(err)
+      return ''
+    }
   }
 
   render() {
     const {classes} = this.props
-    const {loading, loadingMonth, months, selectedMonth, clients, activities, data} = this.state
+    const {loading, loadingMonth, months, selectedMonth, clients, activities, reports} = this.state
 
     if (loading) {
       return <ActivityIndicator />
     }
 
     return (
-      <React.Fragment>
-        <Select
-          className={classes.input}
-          value={months.indexOf(selectedMonth)}
-          onChange={this.selectMonth}
-        >
-          {months.map((month, idx) => (
-            <MenuItem key={idx} value={idx}>{month.display}</MenuItem>
-          ))}
-        </Select>
-        {loadingMonth ? <ActivityIndicator /> : (
-          <Paper className={classes.root}>
-            <EditableTable
-              headers={[{
-                id: 'datenumber',
-                title: 'תאריך',
-                type: 'readonly'
-              }, {
-                id: 'weekday',
-                title: 'יום',
-                type: 'readonly'
-              }, {
-                id: 'startTime',
-                title: 'זמן התחלה',
-                type: 'time',
-                focus: true
-              }, {
-                id: 'endTime',
-                title: 'זמן סיום',
-                type: 'time'
-              }, {
-                id: 'duration',
-                type: 'number',
-                title: 'מס שעות'
-              }, {
-                id: 'clientId',
-                title: 'לקוח',
-                select: clients,
-                idField: '_id',
-                displayField: 'name'
-              }, {
-                id: 'activityId',
-                title: 'פעילות',
-                select: ({clientId}) => activities[clientId],
-                idField: '_id',
-                displayField: 'name'
-              }, {
-                id: 'notes',
-                title: 'הערות',
-                wide: true,
-                multiline: true
-              }]}
-              data={data}
-              isNew={this.isNew}
-              allowAdd={this.shouldShowAddButton}
-              preventEdit={this.shouldPreventEdit}
-              onSave={this.saveReport}
-              onDelete={this.deleteReport}
-              onAdd={this.addAfter}
-            />
-          </Paper>
-        )}
-      </React.Fragment>
+      <Grid container>
+        <Grid container justify='space-between'>
+          <Grid item>
+            <Select
+              className={classes.input}
+              value={months.indexOf(selectedMonth)}
+              onChange={this.selectMonth}
+            >
+              {months.map((month, idx) => (
+                <MenuItem key={idx} value={idx}>{month.display}</MenuItem>
+              ))}
+            </Select>
+          </Grid>
+          <Grid item>
+            {selectedMonth && !selectedMonth.locked && (
+              <Button onClick={this.addNewReport} variant="contained" color="primary">
+                <AddIcon className={classes.newIcon}/>
+                דיווח חדש
+              </Button>
+            )}
+          </Grid>
+        </Grid>
+        <Grid item className={classes.fullWidth}>
+          {loadingMonth ? <ActivityIndicator /> : (
+            <Paper className={classes.root}>
+              <EditableTable
+                headers={[{
+                  id: 'date',
+                  title: 'תאריך',
+                  type: 'date',
+                  focus: true
+                }, {
+                  id: 'weekday',
+                  title: 'יום',
+                  type: 'computed',
+                  transform: this.getReportWeekday
+                }, {
+                  id: 'startTime',
+                  title: 'זמן התחלה',
+                  type: 'time',
+                }, {
+                  id: 'endTime',
+                  title: 'זמן סיום',
+                  type: 'time'
+                }, {
+                  id: 'duration',
+                  type: 'number',
+                  title: 'מס שעות'
+                }, {
+                  id: 'clientId',
+                  title: 'לקוח',
+                  select: clients,
+                  idField: '_id',
+                  displayField: 'name'
+                }, {
+                  id: 'activityId',
+                  title: 'פעילות',
+                  select: ({clientId}) => activities[clientId],
+                  idField: '_id',
+                  displayField: 'name'
+                }, {
+                  id: 'notes',
+                  title: 'הערות',
+                  wide: true,
+                  multiline: true
+                }]}
+                data={reports}
+                isNew={this.isNew}
+                preventEdit={this.shouldPreventEdit}
+                onSave={this.saveReport}
+                onDelete={this.deleteReport}
+              />
+            </Paper>
+          )}
+        </Grid>
+      </Grid>
     )
   }
 }

@@ -16,6 +16,9 @@ const schema = new mongoose.Schema({
   toObject: {
     transform: (doc, ret) => {
       delete ret.__v
+      if (ret.date) {
+        ret.date = ret.date.toISOString().split('T', 1)[0]
+      }
     }
   }
 })

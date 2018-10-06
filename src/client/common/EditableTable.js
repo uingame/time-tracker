@@ -15,10 +15,10 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete'
 import EditIcon from '@material-ui/icons/Edit'
 import SaveIcon from '@material-ui/icons/Save'
-import AddIcon from '@material-ui/icons/Add'
 import UndoIcon from '@material-ui/icons/Undo'
 
 import ActivityIndicator from 'common/ActivityIndicator'
+
 import { MenuItem } from '@material-ui/core';
 
 const styles = theme => ({
@@ -64,16 +64,16 @@ class EditableTable extends React.Component {
       title: PropTypes.string.isRequired,
       wide: PropTypes.bool,
       focus: PropTypes.bool,
-      type: PropTypes.oneOf(['readonly', 'number', 'time']),
+      type: PropTypes.oneOf(['readonly', 'number', 'time', 'computed', 'date']),
       multiline: PropTypes.bool,
       select: PropTypes.oneOfType([PropTypes.array, PropTypes.func]),
       idField: PropTypes.string,
-      displayField: PropTypes.string
+      displayField: PropTypes.string,
+      transform: PropTypes.func
     })).isRequired,
     data: PropTypes.array.isRequired,
     idField: PropTypes.string,
     isNew: PropTypes.func,
-    allowAdd: PropTypes.func,
     preventEdit: PropTypes.func,
     onDelete: PropTypes.func.isRequired,
     onSave: PropTypes.func.isRequired
@@ -82,12 +82,11 @@ class EditableTable extends React.Component {
   static defaultProps = {
     idField: '_id',
     isNew: () => false,
-    allowAdd: () => false,
     preventEdit: () => false
   }
 
   render() {
-    const {classes, headers, data, idField, isNew, allowAdd, preventEdit, ...otherProps} = this.props
+    const {classes, headers, data, idField, isNew, preventEdit, ...otherProps} = this.props
     return (
       <Table>
         <TableHead>
@@ -108,7 +107,6 @@ class EditableTable extends React.Component {
               isNew={isNew(item)}
               data={item}
               preventEdit={preventEdit(item)}
-              allowAdd={allowAdd(item)}
               {...otherProps}
             />
           ))}
@@ -125,23 +123,21 @@ class _EditableRow extends React.Component {
       title: PropTypes.string.isRequired,
       wide: PropTypes.bool,
       focus: PropTypes.bool,
-      type: PropTypes.oneOf(['readonly', 'number', 'time']),
+      type: PropTypes.oneOf(['readonly', 'number', 'time', 'computed', 'date']),
       multiline: PropTypes.bool,
       select: PropTypes.oneOfType([PropTypes.array, PropTypes.func]),
       idField: PropTypes.string,
-      displayField: PropTypes.string
+      displayField: PropTypes.string,
+      transform: PropTypes.func
     })).isRequired,
     data: PropTypes.object.isRequired,
     isNew: PropTypes.bool,
     onDelete: PropTypes.func.isRequired,
     onSave: PropTypes.func.isRequired,
-    onAdd: PropTypes.func,
-    preventEdit: PropTypes.bool,
-    allowAdd: PropTypes.bool
+    preventEdit: PropTypes.bool
   }
 
   static defaultProps = {
-    allowAdd: false,
     preventEdit: false
   }
 
@@ -164,6 +160,10 @@ class _EditableRow extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    this._unmonted = true
+  }
+
   edit() {
     this.setState({
       edit: true,
@@ -176,7 +176,9 @@ class _EditableRow extends React.Component {
     try {
       await this.props.onDelete(this.props.data)
     } catch(err) {
-      this.setState({saving: false})
+      if (!this._unmonted) {
+        this.setState({saving: false})
+      }
     }
   }
 
@@ -184,6 +186,9 @@ class _EditableRow extends React.Component {
     this.setState({saving: true})
     try {
       const data = await this.props.onSave(this.state.data)
+      if (this._unmonted) {
+        return
+      }
       if (data) {
         this.setState({
           data,
@@ -238,26 +243,23 @@ class _EditableRow extends React.Component {
     })
   }
 
-  add() {
-    this.props.onAdd(this.props.data)
-  }
-
   render() {
-    const {classes, headers, allowAdd, preventEdit} = this.props
+    const {classes, headers, preventEdit} = this.props
     const {edit, saving, data, errorFields} = this.state
     return (
       <TableRow>
-        {headers.map(({id, focus, type, select, multiline, wide, idField, displayField}) => {
+        {headers.map(({id, focus, type, select, multiline, wide, idField, displayField, transform}) => {
           const selectOptions = isFunction(select) ? select(data) : select
           return (
             <TableCell key={id} className={wide ? classes.bigCell : classes.smallCell}>
-              {(!edit || saving || type === 'readonly') ? (
+              {type === 'computed' ? transform(data) :
+              (!edit || saving || type === 'readonly') ? (
                 (select && selectOptions) ? (selectOptions.find(option => option[idField] === data[id]) || {})[displayField] : data[id]
               ) : (
                 <TextField
                   fullWidth
                   className={classes.input}
-                  value={data[id] || ''}
+                  value={(type==='date' ? getFormattedDate(data[id]) : data[id]) || ''}
                   inputRef={focus && this.focusOnInput}
                   onChange={e => this.updateData(id, e.target.value)}
                   multiline={multiline}
@@ -276,23 +278,14 @@ class _EditableRow extends React.Component {
           )
         })}
         <TableCell className={classes.smallCell}>
-          {(!edit && !saving) && (
+          {(!edit && !saving && !preventEdit) && (
             <React.Fragment>
-              {!preventEdit && (
-                <React.Fragment>
-                  <IconButton onClick={this.edit}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={this.delete}>
-                    <DeleteIcon />
-                  </IconButton>
-                </React.Fragment>
-              )}
-              {allowAdd && (
-                <IconButton onClick={this.add}>
-                  <AddIcon />
-                </IconButton>
-              )}
+              <IconButton onClick={this.edit}>
+                <EditIcon />
+              </IconButton>
+              <IconButton onClick={this.delete}>
+                <DeleteIcon />
+              </IconButton>
             </React.Fragment>
           ) }
           {saving && <ActivityIndicator />}
@@ -313,5 +306,15 @@ class _EditableRow extends React.Component {
 }
 
 const EditableRow = withStyles(styles)(_EditableRow)
+
+const getFormattedDate = date => {
+  if (!date) {
+    return ''
+  }
+  const d = new Date(date)
+  const day = d.getUTCDate()
+  const month = d.getUTCMonth()+1
+  return `${d.getUTCFullYear()}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day}`
+}
 
 export default withStyles(styles)(EditableTable)
