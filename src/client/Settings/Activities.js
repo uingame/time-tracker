@@ -78,6 +78,10 @@ class Activities extends React.Component {
 
   async deleteActivity(activity) {
     if (!this.isNew(activity)) {
+      if (!confirm('האם אתה בטוח שברצונך למחוק את הפעילות?')) {
+        return
+      }
+
       await activitiesService.deleteActivity(activity._id)
     }
 

@@ -315,6 +315,10 @@ class User extends React.PureComponent {
   }
 
   async delete() {
+    if (!confirm('האם אתה בטוח שברצונך למחוק את העובד?')) {
+      return
+    }
+
     this.setState({
       saving: true
     })

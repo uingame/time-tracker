@@ -232,6 +232,10 @@ class Client extends React.PureComponent {
   }
 
   async delete() {
+    if (!confirm('האם אתה בטוח שברצונך למחוק את הלקוח?')) {
+      return
+    }
+
     this.setState({
       saving: true
     })

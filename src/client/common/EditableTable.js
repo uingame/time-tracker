@@ -180,9 +180,9 @@ class _EditableRow extends React.Component {
     try {
       await this.props.onDelete(this.props.data)
     } catch(err) {
-      if (!this._unmonted) {
-        this.setState({saving: false})
-      }
+    }
+    if (!this._unmonted) {
+      this.setState({saving: false})
     }
   }
 
