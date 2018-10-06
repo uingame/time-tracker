@@ -33,6 +33,9 @@ export async function signIn(username, password) {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(signedInUser))
     return signedInUser
   } catch (err) {
+    if (get(err, 'response.status') === 401) {
+      throw new Error('שם משתמש או סיסמא שגויים')
+    }
     const errorFromServer = get(err, 'response.data.error')
     if (errorFromServer) {
       throw new Error(errorFromServer)
