@@ -75,8 +75,10 @@ class UsersReport extends React.Component {
   }
 
   downloadCSV() {
-    const {reportsByUser, startDate} = this.state
-    generateUsersReportCSV(reportsByUser, `users${startDate}.csv`)
+    const {reportsByUser, startDate, usersFilter, users} = this.state
+    const basename = usersFilter.length !== 1 ? 'users' : users.find(({_id}) => _id === usersFilter[0]).displayName.replace(/ /g, '-')
+    const timestamp = moment(startDate).format('YYYY-MM')
+    generateUsersReportCSV(reportsByUser, `${basename}-${timestamp}.csv`)
   }
 
   render() {

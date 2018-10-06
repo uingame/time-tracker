@@ -75,8 +75,22 @@ class AdvancedReport extends React.Component {
   }
 
   downloadCSV() {
-    const {reports, startDate, endDate} = this.state
-    generateAdvancedReportCSV(reports, `report${startDate}-${endDate}.csv`)
+    const {reports, startDate, endDate, clients, clientsFilter, users, usersFilter, activities, activitiesFilter} = this.state
+    const timestamp = `${moment(startDate).format('YYYY-MM-DD')}-${moment(endDate).format('YYYY-MM-DD')}`
+    let basename = ''
+    if (clientsFilter.length === 1) {
+      basename += clients.find(({_id}) => clientsFilter[0] === _id).name.replace(/ /g, '-') + '-'
+    }
+    if (usersFilter.length === 1) {
+      basename += users.find(({_id}) => usersFilter[0] === _id).displayName.replace(/ /g, '-') + '-'
+    }
+    if (activitiesFilter.length === 1) {
+      basename += activities.find(({_id}) => activitiesFilter[0] === _id).name.replace(/ /g, '-') + '-'
+    }
+    if (!basename) {
+      basename = 'report-'
+    }
+    generateAdvancedReportCSV(reports, `${basename}${timestamp}.csv`)
   }
 
   render() {
