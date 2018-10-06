@@ -28,7 +28,8 @@ const common = {
   entry: ['@babel/polyfill', path.join(paths.src, 'index.js')],
   output: {
     filename: 'bundle.js',
-    path: paths.dist
+    path: paths.dist,
+    publicPath: '/'
   },
   resolve: {
     modules: [paths.src, paths.node_modules],
