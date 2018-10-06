@@ -96,7 +96,7 @@ function calculateUserSalary(reports, user) {
     return ret + quote*duration
   }, 0)
 
-  const reportsByWorkdays = map(groupBy(reports, r => r.date.toISOString()))
+  const reportsByWorkdays = map(groupBy(reports, r => r.date))
   const travelSalary = reportsByWorkdays.reduce((ret, dayReports) => {
     return ret + Math.max(...dayReports.map(({activityId, clientId}) => {
       const activity = user.activities.find(a => a.activityId === activityId && a.clientId === clientId)
