@@ -19,6 +19,7 @@ import SaveIcon from '@material-ui/icons/Save'
 import UndoIcon from '@material-ui/icons/Undo'
 
 import ActivityIndicator from 'common/ActivityIndicator'
+import DayPicker from 'common/DayPicker'
 
 import { MenuItem } from '@material-ui/core';
 
@@ -259,11 +260,17 @@ class _EditableRow extends React.Component {
               {type === 'computed' ? transform(data) :
               (!edit || saving || type === 'readonly') ? (
                 (select && selectOptions) ? (selectOptions.find(option => option[idField] === data[id]) || {})[displayField] : data[id]
+              ) : (type === 'date') ? (
+                <DayPicker
+                  value={data[id]}
+                  error={errorFields.includes(id)}
+                  onDayChange={val => this.updateData(id, val.toISOString().split('T', 1)[0])}
+                />
               ) : (
                 <TextField
                   fullWidth
                   className={classes.input}
-                  value={(type==='date' ? getFormattedDate(data[id]) : data[id]) || ''}
+                  value={data[id] || ''}
                   inputRef={focus && this.focusOnInput}
                   onChange={e => this.updateData(id, e.target.value)}
                   multiline={multiline}
@@ -313,15 +320,5 @@ class _EditableRow extends React.Component {
 }
 
 const EditableRow = withStyles(styles)(_EditableRow)
-
-const getFormattedDate = date => {
-  if (!date) {
-    return ''
-  }
-  const d = new Date(date)
-  const day = d.getUTCDate()
-  const month = d.getUTCMonth()+1
-  return `${d.getUTCFullYear()}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day}`
-}
 
 export default withStyles(styles)(EditableTable)

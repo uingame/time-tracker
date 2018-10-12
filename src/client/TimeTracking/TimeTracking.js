@@ -141,9 +141,14 @@ class TimeTracking extends React.Component {
   }
 
   addNewReport() {
+    const {selectedMonth: {month, year}, selectedUser, isAdmin, reports} = this.state
+
+    const now = moment()
+    const day = (now.month()+1 === month && now.year() === year) ? now.date() : undefined
+
     const newReport =         {
       _id: NEW_PREFIX + (dummyIdCouter++),
-      date: '',
+      date: moment({day, month, year}).toISOString().split('T', 1)[0],
       startTime: '',
       endTime: '',
       duration: '',
@@ -151,13 +156,13 @@ class TimeTracking extends React.Component {
       activityId: '',
       notes: '',
     }
-    if (this.state.isAdmin && this.state.selectedUser) {
-      newReport.userId = this.state.selectedUser._id
+    if (isAdmin && selectedUser) {
+      newReport.userId = selectedUser._id
     }
     this.setState({
       reports: [
         newReport,
-        ...this.state.reports
+        ...reports
       ]
     })
   }

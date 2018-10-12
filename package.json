@@ -32,7 +32,8 @@
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
-    "random-string": "^0.2.0"
+    "random-string": "^0.2.0",
+    "react-day-picker": "^7.2.4"
   },
   "devDependencies": {
     "@babel/polyfill": "^7.0.0",
