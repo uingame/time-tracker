@@ -30,13 +30,14 @@ module.exports = {
     return reports
   },
 
-  async addTimeTrackingReport(user, newReport) {
-    validateReportDate(user, newReport.date)
+  async addTimeTrackingReport(user, reportData) {
+    validateReportDate(user, reportData.date)
+    const newReport = reportData
+    if (!user.isAdmin || !reportData.userId) {
+      newReport.userId = user._id
+    }
     try {
-      const report = await Model.create({
-        ...newReport,
-        userId: user._id
-      })
+      const report = await Model.create(newReport)
       return report
     } catch (err) {
       if (err.name === 'ValidationError') {
@@ -50,10 +51,16 @@ module.exports = {
     validateReportDate(user, updatedFields.date)
     delete updatedFields.createdAt
     updatedFields.modifiedAt = new Date()
+    let userId = user._id
+    if (user.isAdmin && updatedFields.userId) {
+      userId = updatedFields.userId
+    } else {
+      delete updatedFields.userId
+    }
     try {
       const report = await Model.findOneAndUpdate({
         _id: reportId,
-        userId: user._id
+        userId
       },
       updatedFields, {
         new: true,
@@ -72,10 +79,13 @@ module.exports = {
   },
 
   async deleteTimeTrackingReport(user, reportId) {
-    const {ok, n} = await Model.deleteOne({
-      _id: reportId,
-      userId: user._id
-    })
+    const deleteReq = {
+      _id: reportId
+    }
+    if (!user.isAdmin) {
+      deleteReq.userId = user._id
+    }
+    const {ok, n} = await Model.deleteOne(deleteReq)
     if (ok && n > 0) {
       return {success: true}
     } else {
@@ -86,7 +96,7 @@ module.exports = {
 }
 
 function validateReportDate(user, reportDate) {
-  if (!reportDate) {
+  if (user.isAdmin || !reportDate) {
     return
   }
 

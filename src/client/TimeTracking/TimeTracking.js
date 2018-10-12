@@ -140,18 +140,22 @@ class TimeTracking extends React.Component {
   }
 
   addNewReport() {
+    const newReport =         {
+      _id: NEW_PREFIX + (dummyIdCouter++),
+      date: '',
+      startTime: '',
+      endTime: '',
+      duration: '',
+      clientId: '',
+      activityId: '',
+      notes: '',
+    }
+    if (this.state.isAdmin && this.state.selectedUser) {
+      newReport.userId = this.state.selectedUser._id
+    }
     this.setState({
       reports: [
-        {
-          _id: NEW_PREFIX + (dummyIdCouter++),
-          date: '',
-          startTime: '',
-          endTime: '',
-          duration: '',
-          clientId: '',
-          activityId: '',
-          notes: '',
-        },
+        newReport,
         ...this.state.reports
       ]
     })
@@ -173,7 +177,7 @@ class TimeTracking extends React.Component {
   }
 
   async saveReport(report) {
-    const {_id, userId, ...reportData} = report
+    const {_id, ...reportData} = report
     const isNew = this.isNew(report)
     const updatedReport = isNew ?
       await timetrackingService.addTimeTrackingReport(reportData) :
