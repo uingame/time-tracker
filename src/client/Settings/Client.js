@@ -115,6 +115,9 @@ class Client extends React.PureComponent {
     }
   }
 
+  componentWillUnmount() {
+    this._unmounted = true
+  }
 
   async fetchClient(clientId) {
     const client = await clientsService.getClientById(clientId)
@@ -128,6 +131,10 @@ class Client extends React.PureComponent {
   }
 
   setValue(key, value) {
+    if (this._unmounted) {
+      return
+    }
+
     this.setState({
       hasChanges: true,
       client: {
@@ -144,6 +151,10 @@ class Client extends React.PureComponent {
   }
 
   updateActivities(e) {
+    if (this._unmounted) {
+      return
+    }
+
     this.setValue('activities', e.target.value.map(id => (
       this.state.client.activities.find(({activityId}) => activityId === id) || {
         activityId: id
@@ -158,6 +169,10 @@ class Client extends React.PureComponent {
   }
 
   updateHourlyQuote(id, hourlyQuote) {
+    if (this._unmounted) {
+      return
+    }
+
     const {activities} = this.state.client
     const idx = activities.findIndex(({activityId}) => activityId === id)
     if (idx === -1) {
@@ -424,5 +439,8 @@ class Client extends React.PureComponent {
   }
 
 }
+
+//client.activities.map(x => x.activityId)
+const TEST = []
 
 export default withStyles(styles)(Client)

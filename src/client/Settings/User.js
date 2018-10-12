@@ -142,6 +142,9 @@ class User extends React.PureComponent {
     }
   }
 
+  componentWillUnmount() {
+    this._umounted = true
+  }
 
   async fetchUser(userId) {
     const user = await usersService.getUserById(userId)
@@ -157,6 +160,10 @@ class User extends React.PureComponent {
   }
 
   setValue(key, value) {
+    if (this._umounted) {
+      return
+    }
+
     this.setState({
       hasChanges: true,
       user: {

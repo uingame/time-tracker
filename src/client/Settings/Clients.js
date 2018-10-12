@@ -1,5 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {withRouter} from 'react-router-dom'
+import {get} from 'lodash'
 import Grid from '@material-ui/core/Grid'
 import withStyles from '@material-ui/core/styles/withStyles';
 import List from '@material-ui/core/List';
@@ -32,6 +34,7 @@ class Clients extends React.Component {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
+    match: PropTypes.object
   };
 
   state = {
@@ -66,15 +69,11 @@ class Clients extends React.Component {
   }
 
   selectClient(client) {
-    this.setState({
-      selectedClientId: client._id
-    })
+    this.props.history.push(`/clients/${client._id}`)
   }
 
   addNewClient() {
-   this.setState({
-     selectedClientId: 'new'
-   })
+   this.props.history.push(`/clients/new`)
   }
 
   onUpdate(client) {
@@ -84,9 +83,9 @@ class Clients extends React.Component {
         clients: [
           client,
           ...this.state.clients
-        ],
-        selectedClientId: client._id
+        ]
       })
+      this.props.history.push(`/clients/${client._id}`)
     } else {
       this.setState({
         clients: [
@@ -100,14 +99,16 @@ class Clients extends React.Component {
 
   onDelete(clientId) {
     this.setState({
-      clients: this.state.clients.filter(({_id}) => _id !== clientId),
-      selectedClientId: null
+      clients: this.state.clients.filter(({_id}) => _id !== clientId)
     })
   }
 
   render() {
-    const {classes} = this.props
-    const {loading, clients, filter, selectedClientId, activities} = this.state
+    const {classes, match} = this.props
+    const {loading, clients, filter, activities} = this.state
+
+    const clientId = get(match, 'params.clientId')
+    const selectedClientId = Number(clientId) || clientId
 
     if (loading) {
       return <ActivityIndicator />
@@ -160,4 +161,4 @@ class Clients extends React.Component {
 
 }
 
-export default withStyles(styles)(Clients)
+export default withStyles(styles)(withRouter(Clients))

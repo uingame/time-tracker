@@ -1,5 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {withRouter} from 'react-router-dom'
+import {get} from 'lodash'
 import Grid from '@material-ui/core/Grid'
 import withStyles from '@material-ui/core/styles/withStyles';
 import List from '@material-ui/core/List';
@@ -32,6 +34,7 @@ class Users extends React.Component {
 
   static propTypes = {
     classes: PropTypes.object.isRequired,
+    match: PropTypes.object
   };
 
   state = {
@@ -65,15 +68,11 @@ class Users extends React.Component {
   }
 
   selectUser(user) {
-    this.setState({
-      selectedId: user._id
-    })
+    this.props.history.push(`/users/${user._id}`)
   }
 
   addNewUser() {
-   this.setState({
-     selectedId: 'new'
-   })
+    this.props.history.push(`/users/new`)
   }
 
   onUpdate(user) {
@@ -83,9 +82,9 @@ class Users extends React.Component {
         users: [
           user,
           ...this.state.users
-        ],
-        selectedId: user._id
+        ]
       })
+      this.props.history.push(`/users/${user._id}`)
     } else {
       this.setState({
         users: [
@@ -99,14 +98,17 @@ class Users extends React.Component {
 
   onDelete(userId) {
     this.setState({
-      users: this.state.users.filter(({_id}) => _id !== userId),
-      selectedId: null
+      users: this.state.users.filter(({_id}) => _id !== userId)
     })
+    this.props.history.push(`/users`)
   }
 
   render() {
-    const {classes} = this.props
-    const {loading, users, selectedId, clients, filter} = this.state
+    const {classes, match} = this.props
+    const {loading, users, clients, filter} = this.state
+
+    const userId = get(match, 'params.userId')
+    const selectedId = Number(userId) || userId
 
     if (loading) {
       return <ActivityIndicator />
@@ -159,4 +161,4 @@ class Users extends React.Component {
 
 }
 
-export default withStyles(styles)(Users)
+export default withStyles(styles)(withRouter(Users))
