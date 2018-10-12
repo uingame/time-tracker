@@ -80,6 +80,11 @@ module.exports = {
   },
 
   async archiveActivity(id) {
+    const clientsCount = await ClientsModel.count({'activities.activityId': id}).exec()
+    if (clientsCount > 0) {
+      throw new UserError('There are clients registerd to this activity!')
+    }
+
     const update = {
       isArchived: true,
       $rename: {
@@ -93,11 +98,6 @@ module.exports = {
       .exec()
 
     UsersModel.updateMany({
-      'activities.activityId': id
-    }, {
-      $pull: {activities: {activityId: id}}
-    }).exec()
-    ClientsModel.updateMany({
       'activities.activityId': id
     }, {
       $pull: {activities: {activityId: id}}
