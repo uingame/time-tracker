@@ -108,7 +108,7 @@ class AppHeader extends React.Component {
             {isAdmin && <NavButton to='/clientsreport'>דוח לקוחות</NavButton>}
             {isAdmin && <NavButton to='/usersreport'>דוח עובדים</NavButton>}
             {isAdmin && <NavButton to='/advancedreport'>דוח מפורט</NavButton>}
-            {!isAdmin && <NavButton to='/timetracking'>דיווח שעות</NavButton>}
+            <NavButton to='/timetracking'>דיווח שעות</NavButton>
             <IconButton
               aria-owns={open ? 'menu-appbar' : null}
               aria-haspopup="true"
