@@ -101,6 +101,7 @@ class Clients extends React.Component {
     this.setState({
       clients: this.state.clients.filter(({_id}) => _id !== clientId)
     })
+    this.props.history.push(`/clients`)
   }
 
   render() {

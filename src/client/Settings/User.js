@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {Prompt} from 'react-router-dom'
 import {get, uniq} from 'lodash'
 import Grid from '@material-ui/core/Grid'
 import withStyles from '@material-ui/core/styles/withStyles';
@@ -117,6 +118,7 @@ class User extends React.PureComponent {
           saving: false,
           errorFields: [],
           selectedClients: clients,
+          hasChanges: false,
           user: {
             ...EMPTY_USER,
             activities: clients.reduce((ret, {_id, activities}) => {
@@ -135,6 +137,7 @@ class User extends React.PureComponent {
           loading: true,
           saving: false,
           errorFields: [],
+          hasChanges: false,
           user: null
         })
         this.fetchUser(nextProps.userId)
@@ -150,6 +153,7 @@ class User extends React.PureComponent {
     const user = await usersService.getUserById(userId)
     this.setState({
       loading: false,
+      hasChanges: false,
       user: {
         ...EMPTY_USER,
         ...user
@@ -331,6 +335,9 @@ class User extends React.PureComponent {
     })
     const {userId} = this.props
     await usersService.deleteUser(userId)
+    this.setState({
+      hasChanges: false
+    })
     this.props.onDelete(userId)
   }
 
@@ -343,313 +350,319 @@ class User extends React.PureComponent {
     }
 
     return (
-      <Grid container direction='column'>
-        <Grid container justify='space-between'>
+      <React.Fragment>
+        <Prompt
+          when={hasChanges}
+          message='שינויים לא נשמרו, האם לעזוב את הדף?'
+        />
+        <Grid container direction='column'>
+          <Grid container justify='space-between'>
+            <Grid item>
+              <Typography className={classes.title} variant='title'>
+                פרטי עובד
+              </Typography>
+            </Grid>
+            <Grid item>
+              {saving && <ActivityIndicator />}
+              {!saving && hasChanges && <IconButton onClick={this.save}>
+                <SaveIcon />
+              </IconButton>}
+              {!saving && user._id && <IconButton onClick={this.delete}>
+                <DeleteIcon />
+              </IconButton>}
+            </Grid>
+          </Grid>
+          <Grid container>
+            <Grid item xs={3}>
+              <TextField
+                label='מספר עובד'
+                value={user._id}
+                fullWidth
+                disabled
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                label='ת.ז.'
+                value={user.idNumber || ''}
+                onChange={e => this.setValue('idNumber', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('idNumber')}
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                type='date'
+                label='תאריך תחילת עבודה'
+                value={getFormattedDate(user.startDate)}
+                onChange={e => this.setValue('startDate', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('startDate')}
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={user.isAdmin}
+                    onChange={(e, checked) => this.setValue('isAdmin', checked)}
+                    disabled={saving}
+                  />
+                }
+                label="מנהל"
+              />
+            </Grid>
+          </Grid>
+          <Grid container>
+            <Grid item xs={3}>
+              <TextField
+                label='שם פרטי'
+                value={user.firstName || ''}
+                onChange={e => this.setValue('firstName', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('firstName')}
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                label='שם משפחה'
+                value={user.lastName || ''}
+                onChange={e => this.setValue('lastName', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('lastName')}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label='טלפון'
+                value={user.phone || ''}
+                onChange={e => this.setValue('phone', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('phone')}
+              />
+            </Grid>
+          </Grid>
+          <Grid container>
+            <Grid item xs={6}>
+              <TextField
+                label='כתובת'
+                value={user.address || ''}
+                onChange={e => this.setValue('address', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('address')}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label='email'
+                value={user.email || ''}
+                onChange={e => this.setValue('email', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('email')}
+              />
+            </Grid>
+          </Grid>
+          <Grid container>
+            <Grid item xs={6}>
+              <TextField
+                label='שם משתמש'
+                value={user.username || ''}
+                onChange={e => this.setValue('username', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('username')}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              {user._id && (
+                <Button
+                  color='primary'
+                  variant='contained'
+                  disabled={saving}
+                  onClick={this.resetPassword}
+                >
+                  איפוס סיסמא
+                </Button>
+              )}
+            </Grid>
+          </Grid>
           <Grid item>
             <Typography className={classes.title} variant='title'>
-              פרטי עובד
+              שכר
             </Typography>
           </Grid>
+          <Grid container>
+            <Grid item xs={2}>
+              <TextField
+                label='סוג עובד'
+                fullWidth
+                select
+                value={user.type || ''}
+                onChange={e => this.setValue('type', e.target.value)}
+                disabled={saving}
+                error={errorFields.includes('type')}
+              >
+                <MenuItem value='employee'>שכיר</MenuItem>
+                <MenuItem value='contractor'>עצמאי</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={2}>
+              <TextField
+                label='תעריף שעתי'
+                fullWidth
+                type='number'
+                value={user.defaultHourlyQuote || ''}
+                onChange={e => this.setValue('defaultHourlyQuote', e.target.value)}
+                disabled={saving}
+                error={errorFields.includes('defaultHourlyQuote')}
+              />
+            </Grid>
+            <Grid item xs={2}>
+              <TextField
+                label='תעריף נסיעות'
+                fullWidth
+                type='number'
+                value={user.defaultTravelQuote || ''}
+                onChange={e => this.setValue('defaultTravelQuote', e.target.value)}
+                disabled={saving}
+                error={errorFields.includes('defaultTravelQuote')}
+              />
+            </Grid>
+            <Grid item xs={2}>
+              <TextField
+                label='יום אחרון לדיווח'
+                fullWidth
+                type='number'
+                min={0}
+                max={31}
+                value={user.lastReportDay || ''}
+                onChange={e => this.setValue('lastReportDay', e.target.value)}
+                disabled={saving}
+                error={errorFields.includes('lastReportDay')}
+              />
+            </Grid>
+          </Grid>
           <Grid item>
-            {saving && <ActivityIndicator />}
-            {!saving && hasChanges && <IconButton onClick={this.save}>
-              <SaveIcon />
-            </IconButton>}
-            {!saving && user._id && <IconButton onClick={this.delete}>
-              <DeleteIcon />
-            </IconButton>}
+            <Typography className={classes.title} variant='title'>
+              פעילויות
+            </Typography>
           </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item xs={3}>
-            <TextField
-              label='מספר עובד'
-              value={user._id}
-              fullWidth
-              disabled
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              label='ת.ז.'
-              value={user.idNumber || ''}
-              onChange={e => this.setValue('idNumber', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('idNumber')}
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              type='date'
-              label='תאריך תחילת עבודה'
-              value={getFormattedDate(user.startDate)}
-              onChange={e => this.setValue('startDate', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('startDate')}
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={user.isAdmin}
-                  onChange={(e, checked) => this.setValue('isAdmin', checked)}
-                  disabled={saving}
-                />
-              }
-              label="מנהל"
-            />
-          </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item xs={3}>
-            <TextField
-              label='שם פרטי'
-              value={user.firstName || ''}
-              onChange={e => this.setValue('firstName', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('firstName')}
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              label='שם משפחה'
-              value={user.lastName || ''}
-              onChange={e => this.setValue('lastName', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('lastName')}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label='טלפון'
-              value={user.phone || ''}
-              onChange={e => this.setValue('phone', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('phone')}
-            />
-          </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item xs={6}>
-            <TextField
-              label='כתובת'
-              value={user.address || ''}
-              onChange={e => this.setValue('address', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('address')}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label='email'
-              value={user.email || ''}
-              onChange={e => this.setValue('email', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('email')}
-            />
-          </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item xs={6}>
-            <TextField
-              label='שם משתמש'
-              value={user.username || ''}
-              onChange={e => this.setValue('username', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('username')}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            {user._id && (
+          <Grid container>
+            <Grid item xs={10}>
+              <MultipleSelection
+                label='לקוחות'
+                disabled={saving}
+                value={selectedClients.map(client => client._id)}
+                onChange={this.updateSelectedClients}
+                data={clients}
+                displayField='name'
+              />
+            </Grid>
+            <Grid item xs={1}>
               <Button
                 color='primary'
-                variant='contained'
+                className={classes.flatButton}
                 disabled={saving}
-                onClick={this.resetPassword}
+                onClick={this.selectAllActivities}
               >
-                איפוס סיסמא
+                סמן הכל
               </Button>
-            )}
+            </Grid>
+            <Grid item xs={1}>
+              <Button
+                color='primary'
+                className={classes.flatButton}
+                disabled={saving}
+                onClick={this.deselectAllActivities}
+              >
+                נקה
+              </Button>
+            </Grid>
+          </Grid>
+          <Grid item>
+          <Table className={classes.table}>
+            <TableHead>
+              <TableRow>
+                <TableCell className={classes.cell}>בית ספר</TableCell>
+                <TableCell className={classes.cell}>פעילות</TableCell>
+                <TableCell className={classes.cell}>שיוך</TableCell>
+                <TableCell className={classes.cell}>סוג עובד</TableCell>
+                <TableCell className={classes.cell}>תעריף שעתי</TableCell>
+                <TableCell className={classes.cell}>תעריף נסיעות</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {
+                selectedClients.map(client => (
+                  <React.Fragment key={client._id}>
+                    {client.activities.map((activity, clientIdx) => {
+                      const idx = user.activities.findIndex(({activityId, clientId}) => activityId === activity.activityId && clientId === client._id)
+                      const userActivity = user.activities[idx]
+                      return (
+                        <TableRow key={activity.activityId}>
+                          <TableCell className={classes.cell}>{clientIdx === 0 ? client.name : ''}</TableCell>
+                          <TableCell className={classes.cell}>{activity.name}</TableCell>
+                          <TableCell className={classes.cell}>
+                            <Checkbox
+                              checked={!!userActivity}
+                              onChange={(e, checked) => this.handleActivityCheckbox(client._id, activity.activityId, checked)}
+                              disabled={saving}
+                            />
+                          </TableCell>
+                          <TableCell className={classes.cell}>
+                            {userActivity && <TextField
+                              select
+                              fullWidth
+                              value={userActivity.type || ''}
+                              onChange={e => this.updateActivityField(activity.activityId, client._id, 'type', e.target.value)}
+                              disabled={saving}
+                              error={errorFields.includes('type')}
+                            >
+                              <MenuItem></MenuItem>
+                              <MenuItem value='employee'>שכיר</MenuItem>
+                              <MenuItem value='contractor'>עצמאי</MenuItem>
+                            </TextField>}
+                          </TableCell>
+                          <TableCell className={classes.cell}>
+                            {userActivity && <TextField
+                              type='number'
+                              fullWidth
+                              value={userActivity.hourlyQuote || ''}
+                              placeholder={`${user.defaultHourlyQuote || ''}`}
+                              onChange={e => this.updateActivityField(activity.activityId, client._id, 'hourlyQuote', e.target.value)}
+                              disabled={saving}
+                              error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
+                            />}
+                          </TableCell>
+                          <TableCell className={classes.cell}>
+                            {userActivity && <TextField
+                              type='number'
+                              fullWidth
+                              value={userActivity.travelQuote || ''}
+                              placeholder={`${user.defaultTravelQuote || ''}`}
+                              onChange={e => this.updateActivityField(activity.activityId, client._id, 'travelQuote', e.target.value)}
+                              disabled={saving}
+                              error={errorFields.includes(`activities.${idx}.travelQuote`)}
+                            />}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </React.Fragment>
+                ))
+              }
+            </TableBody>
+          </Table>
           </Grid>
         </Grid>
-        <Grid item>
-          <Typography className={classes.title} variant='title'>
-            שכר
-          </Typography>
-        </Grid>
-        <Grid container>
-          <Grid item xs={2}>
-            <TextField
-              label='סוג עובד'
-              fullWidth
-              select
-              value={user.type || ''}
-              onChange={e => this.setValue('type', e.target.value)}
-              disabled={saving}
-              error={errorFields.includes('type')}
-            >
-              <MenuItem value='employee'>שכיר</MenuItem>
-              <MenuItem value='contractor'>עצמאי</MenuItem>
-            </TextField>
-          </Grid>
-          <Grid item xs={2}>
-            <TextField
-              label='תעריף שעתי'
-              fullWidth
-              type='number'
-              value={user.defaultHourlyQuote || ''}
-              onChange={e => this.setValue('defaultHourlyQuote', e.target.value)}
-              disabled={saving}
-              error={errorFields.includes('defaultHourlyQuote')}
-            />
-          </Grid>
-          <Grid item xs={2}>
-            <TextField
-              label='תעריף נסיעות'
-              fullWidth
-              type='number'
-              value={user.defaultTravelQuote || ''}
-              onChange={e => this.setValue('defaultTravelQuote', e.target.value)}
-              disabled={saving}
-              error={errorFields.includes('defaultTravelQuote')}
-            />
-          </Grid>
-          <Grid item xs={2}>
-            <TextField
-              label='יום אחרון לדיווח'
-              fullWidth
-              type='number'
-              min={0}
-              max={31}
-              value={user.lastReportDay || ''}
-              onChange={e => this.setValue('lastReportDay', e.target.value)}
-              disabled={saving}
-              error={errorFields.includes('lastReportDay')}
-            />
-          </Grid>
-        </Grid>
-        <Grid item>
-          <Typography className={classes.title} variant='title'>
-            פעילויות
-          </Typography>
-        </Grid>
-        <Grid container>
-          <Grid item xs={10}>
-            <MultipleSelection
-              label='לקוחות'
-              disabled={saving}
-              value={selectedClients.map(client => client._id)}
-              onChange={this.updateSelectedClients}
-              data={clients}
-              displayField='name'
-            />
-          </Grid>
-          <Grid item xs={1}>
-            <Button
-              color='primary'
-              className={classes.flatButton}
-              disabled={saving}
-              onClick={this.selectAllActivities}
-            >
-              סמן הכל
-            </Button>
-          </Grid>
-          <Grid item xs={1}>
-            <Button
-              color='primary'
-              className={classes.flatButton}
-              disabled={saving}
-              onClick={this.deselectAllActivities}
-            >
-              נקה
-            </Button>
-          </Grid>
-        </Grid>
-        <Grid item>
-        <Table className={classes.table}>
-          <TableHead>
-            <TableRow>
-              <TableCell className={classes.cell}>בית ספר</TableCell>
-              <TableCell className={classes.cell}>פעילות</TableCell>
-              <TableCell className={classes.cell}>שיוך</TableCell>
-              <TableCell className={classes.cell}>סוג עובד</TableCell>
-              <TableCell className={classes.cell}>תעריף שעתי</TableCell>
-              <TableCell className={classes.cell}>תעריף נסיעות</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {
-              selectedClients.map(client => (
-                <React.Fragment key={client._id}>
-                  {client.activities.map((activity, clientIdx) => {
-                    const idx = user.activities.findIndex(({activityId, clientId}) => activityId === activity.activityId && clientId === client._id)
-                    const userActivity = user.activities[idx]
-                    return (
-                      <TableRow key={activity.activityId}>
-                        <TableCell className={classes.cell}>{clientIdx === 0 ? client.name : ''}</TableCell>
-                        <TableCell className={classes.cell}>{activity.name}</TableCell>
-                        <TableCell className={classes.cell}>
-                          <Checkbox
-                            checked={!!userActivity}
-                            onChange={(e, checked) => this.handleActivityCheckbox(client._id, activity.activityId, checked)}
-                            disabled={saving}
-                          />
-                        </TableCell>
-                        <TableCell className={classes.cell}>
-                          {userActivity && <TextField
-                            select
-                            fullWidth
-                            value={userActivity.type || ''}
-                            onChange={e => this.updateActivityField(activity.activityId, client._id, 'type', e.target.value)}
-                            disabled={saving}
-                            error={errorFields.includes('type')}
-                          >
-                            <MenuItem></MenuItem>
-                            <MenuItem value='employee'>שכיר</MenuItem>
-                            <MenuItem value='contractor'>עצמאי</MenuItem>
-                          </TextField>}
-                        </TableCell>
-                        <TableCell className={classes.cell}>
-                          {userActivity && <TextField
-                            type='number'
-                            fullWidth
-                            value={userActivity.hourlyQuote || ''}
-                            placeholder={`${user.defaultHourlyQuote || ''}`}
-                            onChange={e => this.updateActivityField(activity.activityId, client._id, 'hourlyQuote', e.target.value)}
-                            disabled={saving}
-                            error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
-                          />}
-                        </TableCell>
-                        <TableCell className={classes.cell}>
-                          {userActivity && <TextField
-                            type='number'
-                            fullWidth
-                            value={userActivity.travelQuote || ''}
-                            placeholder={`${user.defaultTravelQuote || ''}`}
-                            onChange={e => this.updateActivityField(activity.activityId, client._id, 'travelQuote', e.target.value)}
-                            disabled={saving}
-                            error={errorFields.includes(`activities.${idx}.travelQuote`)}
-                          />}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </React.Fragment>
-              ))
-            }
-          </TableBody>
-        </Table>
-        </Grid>
-      </Grid>
+      </React.Fragment>
     )
   }
 

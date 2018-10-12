@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {Prompt} from 'react-router-dom'
 import {get} from 'lodash'
 import Grid from '@material-ui/core/Grid'
 import withStyles from '@material-ui/core/styles/withStyles';
@@ -93,6 +94,7 @@ class Client extends React.PureComponent {
         this.setState({
           ...this.state,
           loading: false,
+          hasChanges: false,
           saving: false,
           errorFields: [],
           client: {
@@ -108,6 +110,7 @@ class Client extends React.PureComponent {
           loading: true,
           saving: false,
           errorFields: [],
+          hasChanges: false,
           client: null
         })
         this.fetchClient(nextProps.clientId)
@@ -123,6 +126,7 @@ class Client extends React.PureComponent {
     const client = await clientsService.getClientById(clientId)
     this.setState({
       loading: false,
+      hasChanges: false,
       client: {
         ...EMPTY_CLIENT,
         ...client
@@ -256,6 +260,7 @@ class Client extends React.PureComponent {
     })
     const {clientId} = this.props
     await clientsService.deleteClient(clientId)
+    this.setState({hasChanges: false})
     this.props.onDelete(clientId)
   }
 
@@ -268,179 +273,182 @@ class Client extends React.PureComponent {
     }
 
     return (
-      <Grid container direction='column'>
-        <Grid container justify='space-between'>
+      <React.Fragment>
+        <Prompt
+          when={hasChanges}
+          message='שינויים לא נשמרו, האם לעזוב את הדף?'
+        />
+        <Grid container direction='column'>
+          <Grid container justify='space-between'>
+            <Grid item>
+              <Typography className={classes.title} variant='title'>
+                פרטי לקוח
+              </Typography>
+            </Grid>
+            <Grid item>
+              {saving && <ActivityIndicator />}
+              {!saving && hasChanges && <IconButton onClick={this.save}>
+                <SaveIcon />
+              </IconButton>}
+              {!saving && client._id && <IconButton onClick={this.delete}>
+                <DeleteIcon />
+              </IconButton>}
+            </Grid>
+          </Grid>
+          <Grid container>
+            <Grid item xs={1}>
+              <TextField
+                label='מספר לקוח'
+                value={client._id}
+                fullWidth
+                disabled
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                label='שם'
+                value={client.name || ''}
+                onChange={e => this.setValue('name', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('name')}
+              />
+            </Grid>
+          </Grid>
+          <Grid container>
+            <Grid item xs={6}>
+              <TextField
+                label='שם איש קשר'
+                value={client.contactPersonName || ''}
+                onChange={e => this.setValue('contactPersonName', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('contactPersonName')}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label='טלפון'
+                value={client.phone || ''}
+                onChange={e => this.setValue('phone', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('phone')}
+              />
+            </Grid>
+          </Grid>
+          <Grid container>
+            <Grid item xs={6}>
+              <TextField
+                label='כתובת'
+                value={client.address || ''}
+                onChange={e => this.setValue('address', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('address')}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label='email'
+                value={client.email || ''}
+                onChange={e => this.setValue('email', e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes('email')}
+              />
+            </Grid>
+          </Grid>
+          <Grid item>
+            <TextField
+              label='הערות'
+              multiline
+              value={client.notes || ''}
+              onChange={e => this.setValue('notes', e.target.value)}
+              fullWidth
+              disabled={saving}
+              error={errorFields.includes('notes')}
+            />
+          </Grid>
           <Grid item>
             <Typography className={classes.title} variant='title'>
-              פרטי לקוח
+              פעילויות
             </Typography>
           </Grid>
           <Grid item>
-            {saving && <ActivityIndicator />}
-            {!saving && hasChanges && <IconButton onClick={this.save}>
-              <SaveIcon />
-            </IconButton>}
-            {!saving && client._id && <IconButton onClick={this.delete}>
-              <DeleteIcon />
-            </IconButton>}
+          </Grid>
+          <Grid container>
+            <Grid item xs={10}>
+              <MultipleSelection
+                label='פעילויות'
+                disabled={saving}
+                value={client.activities.map(x => x.activityId)}
+                onChange={this.updateActivities}
+                data={activities}
+                displayField='name'
+              />
+            </Grid>
+            <Grid item xs={1}>
+              <Button
+                color='primary'
+                className={classes.flatButton}
+                disabled={saving}
+                onClick={this.selectAllActivities}
+              >
+                סמן הכל
+              </Button>
+            </Grid>
+            <Grid item xs={1}>
+              <Button
+                color='primary'
+                className={classes.flatButton}
+                disabled={saving}
+                onClick={this.deselectAllActivities}
+              >
+                נקה
+              </Button>
+            </Grid>
+          </Grid>
+          <Grid item>
+            <Table className={classes.table}>
+              <TableHead>
+                <TableRow>
+                  <TableCell className={classes.cell}>פעילות</TableCell>
+                  <TableCell className={classes.cell}>תעריף שעתי</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {client.activities.map(({activityId, hourlyQuote}, idx) => {
+                  const activity = activities.find(({_id}) => _id === activityId )
+                  if (!activity) {
+                    return null
+                  }
+                  return (
+                    <TableRow key={activityId}>
+                      <TableCell className={classes.cell}>
+                        {activity.name}
+                      </TableCell>
+                      <TableCell className={classes.cell}>
+                        <TextField
+                          type='number'
+                          min='0'
+                          disabled={saving}
+                          value={hourlyQuote || ''}
+                          onChange={e => this.updateHourlyQuote(activityId, e.target.value)}
+                          error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
           </Grid>
         </Grid>
-        <Grid container>
-          <Grid item xs={1}>
-            <TextField
-              label='מספר לקוח'
-              value={client._id}
-              fullWidth
-              disabled
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              label='שם'
-              value={client.name || ''}
-              onChange={e => this.setValue('name', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('name')}
-            />
-          </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item xs={6}>
-            <TextField
-              label='שם איש קשר'
-              value={client.contactPersonName || ''}
-              onChange={e => this.setValue('contactPersonName', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('contactPersonName')}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label='טלפון'
-              value={client.phone || ''}
-              onChange={e => this.setValue('phone', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('phone')}
-            />
-          </Grid>
-        </Grid>
-        <Grid container>
-          <Grid item xs={6}>
-            <TextField
-              label='כתובת'
-              value={client.address || ''}
-              onChange={e => this.setValue('address', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('address')}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label='email'
-              value={client.email || ''}
-              onChange={e => this.setValue('email', e.target.value)}
-              fullWidth
-              disabled={saving}
-              error={errorFields.includes('email')}
-            />
-          </Grid>
-        </Grid>
-        <Grid item>
-          <TextField
-            label='הערות'
-            multiline
-            value={client.notes || ''}
-            onChange={e => this.setValue('notes', e.target.value)}
-            fullWidth
-            disabled={saving}
-            error={errorFields.includes('notes')}
-          />
-        </Grid>
-        <Grid item>
-          <Typography className={classes.title} variant='title'>
-            פעילויות
-          </Typography>
-        </Grid>
-        <Grid item>
-        </Grid>
-        <Grid container>
-          <Grid item xs={10}>
-            <MultipleSelection
-              label='פעילויות'
-              disabled={saving}
-              value={client.activities.map(x => x.activityId)}
-              onChange={this.updateActivities}
-              data={activities}
-              displayField='name'
-            />
-          </Grid>
-          <Grid item xs={1}>
-            <Button
-              color='primary'
-              className={classes.flatButton}
-              disabled={saving}
-              onClick={this.selectAllActivities}
-            >
-              סמן הכל
-            </Button>
-          </Grid>
-          <Grid item xs={1}>
-            <Button
-              color='primary'
-              className={classes.flatButton}
-              disabled={saving}
-              onClick={this.deselectAllActivities}
-            >
-              נקה
-            </Button>
-          </Grid>
-        </Grid>
-        <Grid item>
-          <Table className={classes.table}>
-            <TableHead>
-              <TableRow>
-                <TableCell className={classes.cell}>פעילות</TableCell>
-                <TableCell className={classes.cell}>תעריף שעתי</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {client.activities.map(({activityId, hourlyQuote}, idx) => {
-                const activity = activities.find(({_id}) => _id === activityId )
-                if (!activity) {
-                  return null
-                }
-                return (
-                  <TableRow key={activityId}>
-                    <TableCell className={classes.cell}>
-                      {activity.name}
-                    </TableCell>
-                    <TableCell className={classes.cell}>
-                      <TextField
-                        type='number'
-                        min='0'
-                        disabled={saving}
-                        value={hourlyQuote || ''}
-                        onChange={e => this.updateHourlyQuote(activityId, e.target.value)}
-                        error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </Grid>
-      </Grid>
+      </React.Fragment>
     )
   }
 
 }
-
-//client.activities.map(x => x.activityId)
-const TEST = []
 
 export default withStyles(styles)(Client)
