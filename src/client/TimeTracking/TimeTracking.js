@@ -92,11 +92,11 @@ class TimeTracking extends React.Component {
       }, {}),
       users
     })
-    this.initUser(user)
+    this.initUser(user, user.isAdmin)
   }
 
-  initUser(user) {
-    const months = getUserMonths(user)
+  initUser(user, disableLock) {
+    const months = getUserMonths(user, disableLock)
     this.setState({
       loading: false,
       months,
@@ -107,7 +107,7 @@ class TimeTracking extends React.Component {
 
   selectUser(e) {
     const userId = get(e, 'target.value', e)
-    this.initUser(this.state.users.find(({_id}) => _id === userId))
+    this.initUser(this.state.users.find(({_id}) => _id === userId), true)
   }
 
   selectMonth(e) {
@@ -318,7 +318,7 @@ class TimeTracking extends React.Component {
 
 export default withStyles(styles)(TimeTracking);
 
-function getUserMonths(user) {
+function getUserMonths(user, disableLock) {
   let firstUnlockedDate = moment.utc({day: 1})
   if (moment.utc().date() <= user.lastReportDay) {
     firstUnlockedDate = firstUnlockedDate.add(-1, 'months')
@@ -343,7 +343,7 @@ function getUserMonths(user) {
         month,
         numberOfDays: m.numberOfDays,
         display: m.format('YYYY MMMM'),
-        locked: m.isBefore(firstUnlockedDate)
+        locked: !disableLock && m.isBefore(firstUnlockedDate)
       })
     }
   }
