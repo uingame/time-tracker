@@ -7,7 +7,7 @@ const router = new express.Router()
 router.use(IsAuthenticated)
 
 router.get('/', makeEndpoint(
-  ({user, query}) => logic.getMonthTimeTracking(user, query.month, query.year)
+  ({user, query}) => logic.getMonthTimeTracking(user, query.month, query.year, query.userId)
 ))
 
 router.post('/', makeEndpoint(

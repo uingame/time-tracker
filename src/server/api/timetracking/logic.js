@@ -5,7 +5,8 @@ const UserError = require('../../common/UserError')
 
 module.exports = {
 
-  async getMonthTimeTracking(user, month, year) {
+  async getMonthTimeTracking(user, month, year, userId) {
+    console.log(userId)
     if (!month) {
       throw new UserError('Month is required!', {month: 'required!'})
     }
@@ -18,7 +19,7 @@ module.exports = {
     firstTimestamp = new Date(Date.UTC(year, month-1, 1, 0, 0, 0)).toUTCString()
     lastTimestamp = new Date(Date.UTC(year, month, 1, 0, 0, 0)).toUTCString()
     const reports = await Model.find({
-      userId: user._id,
+      userId: (user.isAdmin && userId) ? userId : user._id,
       date: {
         $gte: firstTimestamp,
         $lt: lastTimestamp

@@ -1,8 +1,12 @@
 import apiClient from 'core/apiClient'
 import querystring from 'querystring'
 
-export async function getMonthTimeTracking(month, year) {
-  const {data} = await apiClient.get(`/timetracking?${querystring.stringify({month, year})}`)
+export async function getMonthTimeTracking(month, year, user) {
+  const query = { month, year }
+  if (user) {
+    query.userId = user._id
+  }
+  const {data} = await apiClient.get(`/timetracking?${querystring.stringify(query)}`)
   return data
 }
 

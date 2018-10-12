@@ -16,6 +16,7 @@ import {getSignedInUser} from 'core/authService'
 import * as timetrackingService from 'core/timetrackingService'
 import {getAllActivities} from 'core/activitiesService'
 import {getAllClients} from 'core/clientsService'
+import {getAllUsers} from 'core/usersService'
 
 import moment from 'moment'
 import EditableTable from '../common/EditableTable';
@@ -40,7 +41,8 @@ const styles = theme => ({
   },
   input: {
     fontSize: '1.25rem',
-    direction: 'rtl'
+    direction: 'rtl',
+    marginLeft: theme.spacing.unit
   },
   newIcon: {
     marginLeft: theme.spacing.unit
@@ -59,6 +61,7 @@ class TimeTracking extends React.Component {
   }
 
   state = {
+    isAdmin: false,
     loading: true,
     loadingMonth: false,
     clients: [],
@@ -73,33 +76,51 @@ class TimeTracking extends React.Component {
   }
 
   async init() {
-    const [clients, activities] = await Promise.all([
+    const [clients, allActivities] = await Promise.all([
       getAllClients(),
       getAllActivities()
     ])
     const user = getSignedInUser()
-    const months = getUserMonths(user)
+    const users = !user.isAdmin ? null : await getAllUsers()
     this.setState({
-      loading: false,
+      isAdmin: user.isAdmin,
       clients,
       activities: clients.reduce((ret, client) => {
-        ret[client._id] = activities
+        ret[client._id] = allActivities
           .filter(activity => client.activities.some(({activityId}) => activityId === activity._id))
         return ret
       }, {}),
-      months
+      users
     })
-    this.selectMonth(months.length-1-EXTRA_MONTHS)
+    this.initUser(user)
   }
 
-  async selectMonth(e) {
+  initUser(user) {
+    const months = getUserMonths(user)
+    this.setState({
+      loading: false,
+      months,
+      selectedUser: user
+    })
+    this.initMonth(months[months.length-1-EXTRA_MONTHS], user)
+  }
+
+  selectUser(e) {
+    const userId = get(e, 'target.value', e)
+    this.initUser(this.state.users.find(({_id}) => _id === userId))
+  }
+
+  selectMonth(e) {
     const idx = get(e, 'target.value', e)
-    const selectedMonth = this.state.months[idx]
+    this.initMonth(this.state.months[idx], this.state.selectedUser)
+  }
+
+  async initMonth(selectedMonth, selectedUser) {
     this.setState({
       selectedMonth,
       loadingMonth: true
     })
-    const reports = await timetrackingService.getMonthTimeTracking(selectedMonth.month, selectedMonth.year)
+    const reports = await timetrackingService.getMonthTimeTracking(selectedMonth.month, selectedMonth.year, this.state.isAdmin && selectedUser)
     this.setState({
       loadingMonth: false,
       reports
@@ -194,7 +215,7 @@ class TimeTracking extends React.Component {
 
   render() {
     const {classes} = this.props
-    const {loading, loadingMonth, months, selectedMonth, clients, activities, reports} = this.state
+    const {loading, loadingMonth, months, selectedMonth, clients, activities, users, selectedUser, reports, isAdmin} = this.state
 
     if (loading) {
       return <ActivityIndicator />
@@ -204,6 +225,15 @@ class TimeTracking extends React.Component {
       <Grid container>
         <Grid container justify='space-between'>
           <Grid item>
+            {isAdmin && <Select
+              className={classes.input}
+              value={selectedUser && selectedUser._id}
+              onChange={this.selectUser}
+            >
+              {users.map(({_id, displayName}) => (
+                <MenuItem key={_id} value={_id}>{displayName}</MenuItem>
+              ))}
+            </Select>}
             <Select
               className={classes.input}
               value={months.indexOf(selectedMonth)}
