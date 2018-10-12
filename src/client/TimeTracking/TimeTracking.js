@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {get, without} from 'lodash'
+import {get, without, omit} from 'lodash'
 import withStyles from '@material-ui/core/styles/withStyles';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
@@ -67,7 +67,8 @@ class TimeTracking extends React.Component {
     clients: [],
     activities: [],
     selectedMonth: null,
-    reports: []
+    reports: [],
+    duplications: {}
   }
 
   constructor(props) {
@@ -164,12 +165,17 @@ class TimeTracking extends React.Component {
   duplicate(report) {
     const {reports} = this.state
     const idx = reports.indexOf(({_id}) => _id === report._id)
+    const newId = NEW_PREFIX + (dummyIdCouter++)
     this.setState({
+      duplications: {
+        ...this.state.duplications,
+        [newId]: report
+      },
       reports: [
         ...this.state.reports.slice(0, idx),
         {
           ...report,
-          _id: NEW_PREFIX + (dummyIdCouter++)
+          _id: newId
         },
         ...this.state.reports.slice(idx)
       ]
@@ -179,6 +185,7 @@ class TimeTracking extends React.Component {
   async saveReport(report) {
     const {_id, ...reportData} = report
     const isNew = this.isNew(report)
+    if (isNew) this._validateDuplications(report)
     const updatedReport = isNew ?
       await timetrackingService.addTimeTrackingReport(reportData) :
       await timetrackingService.updateTimeTrackingReport(_id, reportData)
@@ -186,12 +193,25 @@ class TimeTracking extends React.Component {
     const {reports} = this.state
     const idx = reports.findIndex(r => r._id === _id)
     this.setState({
+      duplications: omit(this.state.duplications, report._id),
       reports : [
         ...reports.slice(0, idx),
         updatedReport,
         ...reports.slice(idx+1)
       ]
     })
+  }
+
+  _validateDuplications(report) {
+    const original = this.state.duplications[report._id]
+    if (!original) {
+      return
+    }
+
+    if (original.date === report.date && original.startTime === report.startTime && original.endTime === report.endTime) {
+      alert('אנא שנה תאריך/זמן התחלה/זמן סיום')
+      throw new Error('Duplication without change')
+    }
   }
 
   async deleteReport(report) {
