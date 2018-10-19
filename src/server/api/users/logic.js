@@ -17,8 +17,8 @@ async function populate(user) {
     getMultipleActivities(uniq(user.activities.map(a => a.activityId)))
   ])
   user.activities.forEach(a => {
-    a.clientName = clients.find(({id}) => Number(id) === a.clientId).name
-    a.activityName = activities.find(({id}) => id === a.activityId).name
+    a.clientName = get(clients.find(({id}) => Number(id) === a.clientId), 'name')
+    a.activityName = get(activities.find(({id}) => id === a.activityId), 'name')
   })
   return user
 }
