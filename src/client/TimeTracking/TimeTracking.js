@@ -148,7 +148,7 @@ class TimeTracking extends React.Component {
 
     const newReport =         {
       _id: NEW_PREFIX + (dummyIdCouter++),
-      date: moment({day, month, year}).toISOString().split('T', 1)[0],
+      date: moment({day, month: month-1, year}).toISOString().split('T', 1)[0],
       startTime: '',
       endTime: '',
       duration: '',
