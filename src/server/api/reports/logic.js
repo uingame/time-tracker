@@ -86,7 +86,7 @@ function populate(reports, users, clients, activities) {
 
 function calculateReportsTotalPrice(reports, client) {
   return reports.reduce((ret, {activityId, duration}) => {
-    const clientActivity = client.activities.find(a => a.activityId === activityId)
+    const clientActivity = get(client, 'activities', []).find(a => a.activityId === activityId)
     const hourlyQuote = get(clientActivity, 'hourlyQuote')
     const price = hourlyQuote || 0
     return ret + price*duration
