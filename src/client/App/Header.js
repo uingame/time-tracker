@@ -131,9 +131,9 @@ class AppHeader extends React.Component {
               open={!!anchorEl}
               onClose={this.handleClose}
             >
-              {isAdmin && <NavMenuItem to='/users' onClick={this.handleClose}>עובדים</NavMenuItem>}
-              {isAdmin && <NavMenuItem to='/clients' onClick={this.handleClose}>לקוחות</NavMenuItem>}
               {isAdmin && <NavMenuItem to='/activities' onClick={this.handleClose}>פעילויות</NavMenuItem>}
+              {isAdmin && <NavMenuItem to='/clients' onClick={this.handleClose}>לקוחות</NavMenuItem>}
+              {isAdmin && <NavMenuItem to='/users' onClick={this.handleClose}>עובדים</NavMenuItem>}
               {isAdmin && <Divider />}
               <NavMenuItem to='/changepassword' onClick={this.handleClose}>שינוי סיסמא</NavMenuItem>
               <MenuItem onClick={this.signOut}>יציאה</MenuItem>
