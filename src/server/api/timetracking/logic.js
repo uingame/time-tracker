@@ -6,7 +6,6 @@ const UserError = require('../../common/UserError')
 module.exports = {
 
   async getMonthTimeTracking(user, month, year, userId) {
-    console.log(userId)
     if (!month) {
       throw new UserError('Month is required!', {month: 'required!'})
     }

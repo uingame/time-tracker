@@ -15,10 +15,12 @@ configureMongoose()
 
 const app = express()
 
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} [${req.connection.remoteAddress}] - ${req.method} ${req.protocol}://${req.hostname}${req.path}`)
-  next()
-})
+if (config.debug) {
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} [${req.connection.remoteAddress}] - ${req.method} ${req.protocol}://${req.hostname}${req.path}`)
+    next()
+  })
+}
 
 app.use('/api', createApiRouter())
 
