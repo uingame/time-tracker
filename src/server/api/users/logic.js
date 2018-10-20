@@ -49,12 +49,12 @@ async function sendPasswordMail(user, password) {
 module.exports = {
 
   async getAllUsers() {
-    const users = await Model.find().ne('isArchived', true).exec()
+    const users = await Model.find().ne('isArchived', true).sort('firstName lastName').exec()
     return users
   },
 
   async getMultipleUsers(userIds) {
-    const users = await Model.find().in('_id', userIds).exec()
+    const users = await Model.find().in('_id', userIds).sort('firstName lastName').exec()
     return users
   },
 

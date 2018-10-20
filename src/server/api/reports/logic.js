@@ -19,7 +19,11 @@ async function getReports(startDate, endDate, group, filter) {
       $lt: endDate
     }},
     null, {
-      sort: {date: 1}
+      sort: {
+        date: 1,
+        startTime: 1,
+        endTime: 1
+      }
     })
 
   if (filter) {

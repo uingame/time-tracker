@@ -21,7 +21,7 @@ function populateActivites(client, activities) {
 module.exports = {
 
   async getAllClients(user) {
-    let query = Model.find().ne('isArchived', true)
+    let query = Model.find().ne('isArchived', true).sort('name')
 
     if (!user.isAdmin) {
       query = query.in('_id', user.activities.map(a => a.clientId))
@@ -36,7 +36,7 @@ module.exports = {
   },
 
   async getMultipleClients(clientIds) {
-    const clients = await Model.find().in('_id', clientIds).exec()
+    const clients = await Model.find().in('_id', clientIds).sort('name').exec()
     return clients
   },
 

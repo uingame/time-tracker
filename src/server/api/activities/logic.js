@@ -9,7 +9,7 @@ const DUPLICATE_KEY_REG_EXP = /index: (?:.*\$)?([A-Za-z]*)_-?1/
 module.exports = {
 
   async getAllActivities(user) {
-    let query = Model.find().ne('isArchived', true)
+    let query = Model.find().ne('isArchived', true).sort('name')
 
     if (!user.isAdmin) {
       query = query.in('_id', user.activities.map(a => a.activityId))
@@ -30,6 +30,7 @@ module.exports = {
   async getMultipleActivities(ids) {
     const activities = await Model.find()
       .in('_id', ids)
+      .sort('name')
       .exec()
     return activities
   },
