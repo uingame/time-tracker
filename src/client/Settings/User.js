@@ -593,7 +593,6 @@ class User extends React.PureComponent {
                 <TableCell className={classes.cell}>בית ספר</TableCell>
                 <TableCell className={classes.cell}>פעילות</TableCell>
                 <TableCell className={classes.cell}>שיוך</TableCell>
-                <TableCell className={classes.cell}>סוג עובד</TableCell>
                 <TableCell className={classes.cell}>תעריף שעתי</TableCell>
                 <TableCell className={classes.cell}>תעריף נסיעות</TableCell>
               </TableRow>
@@ -615,20 +614,6 @@ class User extends React.PureComponent {
                               onChange={(e, checked) => this.handleActivityCheckbox(client._id, activity.activityId, checked)}
                               disabled={saving}
                             />
-                          </TableCell>
-                          <TableCell className={classes.cell}>
-                            {userActivity && <TextField
-                              select
-                              fullWidth
-                              value={userActivity.type || ''}
-                              onChange={e => this.updateActivityField(activity.activityId, client._id, 'type', e.target.value)}
-                              disabled={saving}
-                              error={errorFields.includes('type')}
-                            >
-                              <MenuItem></MenuItem>
-                              <MenuItem value='employee'>שכיר</MenuItem>
-                              <MenuItem value='contractor'>עצמאי</MenuItem>
-                            </TextField>}
                           </TableCell>
                           <TableCell className={classes.cell}>
                             {userActivity && <TextField

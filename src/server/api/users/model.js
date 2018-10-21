@@ -3,7 +3,6 @@ const mongoose = require('mongoose')
 const activitySchema = new mongoose.Schema({
   clientId: {type: Number, required: true},
   activityId: {type: String, required: true},
-  type: {type: String, enum: ['employee', 'contractor']},
   hourlyQuote: {type: Number, min: 0},
   travelQuote: {type: Number, min: 0}
 }, {
