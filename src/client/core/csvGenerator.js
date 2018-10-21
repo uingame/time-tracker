@@ -3,7 +3,7 @@ import {reduce} from 'lodash'
 
 export function generateAdvancedReportCSV(data, filename) {
   const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes')
-  fileDownload(csv, filename, "text/plain")
+  fileDownload(csv, filename, "text/csv")
 }
 
 export function generateClientsReportCSV(data, filename) {
@@ -13,7 +13,7 @@ export function generateClientsReportCSV(data, filename) {
       `totalHours,${totalHours}\n` +
       `totalPrice,${totalPrice}\n\n`,
     '')
-  fileDownload(csv, filename, "text/plain")
+  fileDownload(csv, filename, "text/csv")
 }
 
 export function generateUsersReportCSV(data, filename) {
@@ -26,7 +26,7 @@ export function generateUsersReportCSV(data, filename) {
       `travelSalary,${travelSalary}\n` +
       `totalSalary,${totalSalary}\n\n`,
     '')
-  fileDownload(csv, filename, "text/plain")
+  fileDownload(csv, filename, "text/csv")
 }
 
 function _arrayToCSV(arr, ...fields) {
