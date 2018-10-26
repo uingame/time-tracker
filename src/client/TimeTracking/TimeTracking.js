@@ -290,36 +290,43 @@ class TimeTracking extends React.Component {
                   id: 'date',
                   title: 'תאריך',
                   type: 'date',
-                  focus: true
+                  focus: true,
+                  sortable: true
                 }, {
                   id: 'weekday',
                   title: 'יום',
                   type: 'computed',
-                  transform: this.getReportWeekday
+                  transform: this.getReportWeekday,
+                  sortable: true
                 }, {
                   id: 'startTime',
                   title: 'זמן התחלה',
                   type: 'time',
+                  sortable: true
                 }, {
                   id: 'endTime',
                   title: 'זמן סיום',
-                  type: 'time'
+                  type: 'time',
+                  sortable: true
                 }, {
                   id: 'duration',
                   type: 'number',
-                  title: 'מס שעות'
+                  title: 'מס שעות',
+                  sortable: true
                 }, {
                   id: 'clientId',
                   title: 'לקוח',
                   select: clients,
                   idField: '_id',
-                  displayField: 'name'
+                  displayField: 'name',
+                  sortable: true
                 }, {
                   id: 'activityId',
                   title: 'פעילות',
                   select: ({clientId}) => activities[clientId],
                   idField: '_id',
-                  displayField: 'name'
+                  displayField: 'name',
+                  sortable: true
                 }, {
                   id: 'notes',
                   title: 'הערות',

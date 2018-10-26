@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types';
-import {get, isFunction} from 'lodash'
+import {get, sortBy, isFunction} from 'lodash'
+import memoizeOne from 'memoize-one';
 import { withStyles } from '@material-ui/core/styles';
 
 import Table from '@material-ui/core/Table';
@@ -8,6 +9,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import TableSortLabel from '@material-ui/core/TableSortLabel';
 
 import TextField from '@material-ui/core/TextField';
 
@@ -89,22 +91,51 @@ class EditableTable extends React.Component {
     preventEdit: () => false
   }
 
+  state = {
+    orderBy: '',
+    orderDirection: 'asc'
+  }
+
+  applySort(id) {
+    const {orderBy, orderDirection} = this.state
+    if (orderBy !== id) {
+      this.setState({
+        orderBy: id,
+        orderDirection: 'asc'
+      })
+      return
+    }
+
+    this.setState({
+      orderDirection: orderDirection === 'asc' ? 'desc' : 'asc'
+    })
+  }
+
   render() {
     const {classes, headers, data, idField, isNew, preventEdit, ...otherProps} = this.props
+    const {orderBy, orderDirection} = this.state
     return (
       <Table>
         <TableHead>
           <TableRow>
-            {headers.map(({id, title, wide}) => (
+            {headers.map(({id, title, wide, sortable}) => (
               <TableCell key={id} className={wide ? classes.bigCell : classes.smallCell}>
-                {title}
+                {sortable ? (
+                  <TableSortLabel
+                    active={orderBy === id}
+                    direction={orderDirection}
+                    onClick={() => this.applySort(id)}
+                  >
+                    {title}
+                  </TableSortLabel>
+                ) : title}
               </TableCell>
             ))}
             <TableCell className={classes.smallCell}/>
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map(item => (
+          {getSortedData(data, headers.find(({id}) => id === orderBy), orderDirection).map(item => (
             <EditableRow
               key={item[idField]}
               headers={headers}
@@ -320,5 +351,21 @@ class _EditableRow extends React.Component {
 }
 
 const EditableRow = withStyles(styles)(_EditableRow)
+
+const getSortedData = memoizeOne((data = [], orderHeader, orderDirection) => {
+  if (!orderHeader) {
+    return data
+  }
+
+  const {id, transform, select, displayField, idField} = orderHeader
+  const orderBy = select ? (item) => ((isFunction(select) ? select(item) : select).find(option => option[idField] === data[id]) || {})[displayField] :
+    transform || id
+
+  const sortedData = sortBy(data, orderBy)
+  if (orderDirection === 'desc') {
+    sortedData.reverse()
+  }
+  return sortedData
+})
 
 export default withStyles(styles)(EditableTable)
