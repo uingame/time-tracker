@@ -2,6 +2,16 @@ import fileDownload from 'downloadjs'
 import {reduce} from 'lodash'
 
 const UNIVERSAL_BOM = '\uFEFF'
+const HEADERS = {
+  date: 'תאריך',
+  startTime: 'זמן התחלה',
+  endTime: 'זמן סיום',
+  duration: 'מס שעות',
+  clientName: 'לקוח',
+  activityName: 'פעילות',
+  username: 'עובד',
+  notes: 'הערות'
+}
 
 export function generateTimeTrackingCSV(data, filename) {
   const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'activityName', 'notes')
@@ -37,7 +47,7 @@ export function generateUsersReportCSV(data, filename) {
 }
 
 function _arrayToCSV(arr, ...fields) {
-  const headers = `${fields.join(',')}\n`
+  const headers = `${fields.map(field => HEADERS[field] || field).join(',')}\n`
   return arr.reduce(
     (csv, item) => csv +
       fields.reduce((line, field) => line ? `${line},${item[field] || ''}` : (item[field] || ''), '') + '\n',
