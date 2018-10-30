@@ -34,9 +34,12 @@ async function sendPasswordMail(user, password) {
         זוהי הזמנה להשתמש במערכת דיווחי שעות של שמיר יעוץ והדרכה.
         לצורך כניסה למערכת, נוצרה עבורך סיסמא ראשונית.
         ביכולתך לשנות סיסמא זו כרצונך מתוך המערכת.
+        https://uingame-timetracker.herokuapp.com
 
-        שם משתמש: ${user.username}
-        סיסמא: ${password}
+        שם משתמש:
+        ${user.username}
+        סיסמא:
+        ${password}
 
         בכבוד רב,
         שמיר יעוץ והדרכה
