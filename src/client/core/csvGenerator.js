@@ -1,9 +1,11 @@
 import fileDownload from 'downloadjs'
 import {reduce} from 'lodash'
 
+const UNIVERSAL_BOM = '\uFEFF'
+
 export function generateAdvancedReportCSV(data, filename) {
   const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes')
-  fileDownload(csv, filename, "text/csv")
+  fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
 }
 
 export function generateClientsReportCSV(data, filename) {
@@ -13,7 +15,7 @@ export function generateClientsReportCSV(data, filename) {
       `totalHours,${totalHours}\n` +
       `totalPrice,${totalPrice}\n\n`,
     '')
-  fileDownload(csv, filename, "text/csv")
+  fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
 }
 
 export function generateUsersReportCSV(data, filename) {
@@ -26,7 +28,7 @@ export function generateUsersReportCSV(data, filename) {
       `travelSalary,${travelSalary}\n` +
       `totalSalary,${totalSalary}\n\n`,
     '')
-  fileDownload(csv, filename, "text/csv")
+  fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
 }
 
 function _arrayToCSV(arr, ...fields) {
