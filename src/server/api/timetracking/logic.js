@@ -1,7 +1,22 @@
-const {mapValues} = require('lodash')
+const {mapValues, uniq, get} = require('lodash')
 const moment = require('moment')
 const Model = require('../reports/model')
+const clientsLogic = require('../clients/logic')
+const activitiesLogic = require('../activities/logic')
 const UserError = require('../../common/UserError')
+
+async function populate(reports) {
+  const [clients, activities] = await Promise.all([
+    clientsLogic.getMultipleClients(uniq(reports.map(r => r.clientId))),
+    activitiesLogic.getMultipleActivities(uniq(reports.map(r => r.activityId)))
+  ])
+  reports.forEach(report => {
+    const client = clients.find(({id}) => Number(id) === report.clientId)
+    const activity = activities.find(({id}) => id === report.activityId)
+    report.activityName = get(activity, 'name')
+    report.clientName = get(client, 'name')
+  })
+}
 
 module.exports = {
 
@@ -17,7 +32,7 @@ module.exports = {
     }
     firstTimestamp = new Date(Date.UTC(year, month-1, 1, 0, 0, 0)).toUTCString()
     lastTimestamp = new Date(Date.UTC(year, month, 1, 0, 0, 0)).toUTCString()
-    const reports = await Model.find({
+    const reportModels = await Model.find({
       userId: (user.isAdmin && userId) ? userId : user._id,
       date: {
         $gte: firstTimestamp,
@@ -26,6 +41,12 @@ module.exports = {
     })
       .sort('date startTime')
       .exec()
+
+    const reports = reportModels.map(r => r.toJSON())
+
+    await populate(reports)
+
+
     return reports
   },
 
@@ -36,7 +57,11 @@ module.exports = {
       newReport.userId = user._id
     }
     try {
-      const report = await Model.create(newReport)
+      const reportModel = await Model.create(newReport)
+      const report = reportModel.toJSON()
+
+      await populate([report])
+
       return report
     } catch (err) {
       if (err.name === 'ValidationError') {
@@ -57,7 +82,7 @@ module.exports = {
       delete updatedFields.userId
     }
     try {
-      const report = await Model.findOneAndUpdate({
+      const reportModel = await Model.findOneAndUpdate({
         _id: reportId,
         userId
       },
@@ -65,9 +90,11 @@ module.exports = {
         new: true,
         runValidators: true
       }).exec()
-      if (!report) {
+      if (!reportModel) {
         throw new UserError('Report not found')
       }
+      const report = reportModel.toJSON()
+      await populate([report])
       return report;
     } catch (err) {
       if (err.name === 'ValidationError') {

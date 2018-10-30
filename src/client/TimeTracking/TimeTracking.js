@@ -6,6 +6,7 @@ import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add'
+import DownloadIcon from '@material-ui/icons/GetApp'
 
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -20,6 +21,8 @@ import {getAllUsers} from 'core/usersService'
 
 import moment from 'moment'
 import EditableTable from '../common/EditableTable';
+
+import {generateTimeTrackingCSV} from 'core/csvGenerator'
 
 const EXTRA_MONTHS = 1
 const NEW_PREFIX = 'new_'
@@ -44,11 +47,14 @@ const styles = theme => ({
     direction: 'rtl',
     marginLeft: theme.spacing.unit
   },
-  newIcon: {
+  iconInButton: {
     marginLeft: theme.spacing.unit
   },
   fullWidth: {
     width: '100%'
+  },
+  csvButton: {
+    marginLeft: theme.spacing.unit,
   }
 });
 
@@ -242,6 +248,11 @@ class TimeTracking extends React.Component {
     }
   }
 
+  downloadCSV() {
+    const {reports, selectedMonth: {month, year}} = this.state
+    generateTimeTrackingCSV(reports, `report-${year}-${month}.csv`)
+  }
+
   render() {
     const {classes} = this.props
     const {loading, loadingMonth, months, selectedMonth, clients, activities, users, selectedUser, reports, isAdmin} = this.state
@@ -274,9 +285,15 @@ class TimeTracking extends React.Component {
             </Select>
           </Grid>
           <Grid item>
+            {selectedMonth && (
+              <Button className={classes.csvButton} onClick={this.downloadCSV} variant="contained" color="primary">
+                <DownloadIcon className={classes.iconInButton}/>
+                CSV
+              </Button>
+            )}
             {selectedMonth && !selectedMonth.locked && (
               <Button onClick={this.addNewReport} variant="contained" color="primary">
-                <AddIcon className={classes.newIcon}/>
+                <AddIcon className={classes.iconInButton}/>
                 דיווח חדש
               </Button>
             )}

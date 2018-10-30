@@ -3,6 +3,11 @@ import {reduce} from 'lodash'
 
 const UNIVERSAL_BOM = '\uFEFF'
 
+export function generateTimeTrackingCSV(data, filename) {
+  const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'activityName', 'notes')
+  fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
+}
+
 export function generateAdvancedReportCSV(data, filename) {
   const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes')
   fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
