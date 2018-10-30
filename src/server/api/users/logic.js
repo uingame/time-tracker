@@ -28,16 +28,18 @@ async function sendPasswordMail(user, password) {
     await mailer.sendMail({
       from: 'no-reply@uingame.co.il',
       to: user.email,
-      subject: 'Your Time-Tracker password was reset',
+      subject: 'פרטי כניסה למערכת דיווחי שעות - שמיר יעוץ והדרכה',
       text: `
-        Your Time-Tracker password was reset.
+        שלום רב.
+        זוהי הזמנה להשתמש במערכת דיווחי שעות של שמיר יעוץ והדרכה.
+        לצורך כניסה למערכת, נוצרה עבורך סיסמא ראשונית.
+        ביכולתך לשנות סיסמא זו כרצונך מתוך המערכת.
 
-        Your new credentials are:
-        Email: ${user.email}
-        Username: ${user.username}
-        Password: ${password}
+        שם משתמש: ${user.username}
+        סיסמא: ${password}
 
-        Please make sure to change your password when you sign in.
+        בכבוד רב,
+        שמיר יעוץ והדרכה
       `
     })
   } catch (e) {
