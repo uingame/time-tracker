@@ -1,4 +1,4 @@
-const {uniq, map, groupBy, mapValues, sumBy, get} = require('lodash')
+const {uniq, map, groupBy, mapValues, sumBy, get, round} = require('lodash')
 const Model = require('./model')
 const usersLogic = require('../users/logic')
 const clientsLogic = require('../clients/logic')
@@ -85,28 +85,28 @@ function populate(reports, users, clients, activities) {
 }
 
 function calculateReportsTotalPrice(reports, client) {
-  return reports.reduce((ret, {activityId, duration}) => {
+  return round(reports.reduce((ret, {activityId, duration}) => {
     const clientActivity = get(client, 'activities', []).find(a => a.activityId === activityId)
     const hourlyQuote = get(clientActivity, 'hourlyQuote')
     const price = hourlyQuote || 0
     return ret + price*duration
-  }, 0)
+  }, 0), 2)
 }
 
 function calculateUserSalary(reports, user) {
-  const salary = reports.reduce((ret, {activityId, clientId, duration}) => {
+  const salary = round(reports.reduce((ret, {activityId, clientId, duration}) => {
     const activity = user.activities.find(a => a.activityId === activityId && a.clientId === clientId)
     const quote = (activity && activity.hourlyQuote) || user.defaultHourlyQuote || 0
     return ret + quote*duration
-  }, 0)
+  }, 0), 2)
 
   const reportsByWorkdays = map(groupBy(reports, r => r.date))
-  const travelSalary = reportsByWorkdays.reduce((ret, dayReports) => {
+  const travelSalary = round(reportsByWorkdays.reduce((ret, dayReports) => {
     return ret + Math.max(...dayReports.map(({activityId, clientId}) => {
       const activity = user.activities.find(a => a.activityId === activityId && a.clientId === clientId)
       return (activity && activity.travelQuote) || user.defaultTravelQuote || 0
     }))
-  }, 0)
+  }, 0), 2)
 
   return {
     numberOfWorkdays: reportsByWorkdays.length,
