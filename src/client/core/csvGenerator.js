@@ -27,8 +27,8 @@ export function generateClientsReportCSV(data, filename) {
   const csv = reduce(data,
     (csv, {reports, totalHours, totalPrice}) => csv +
       _arrayToCSV(reports, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes') +
-      `totalHours,${totalHours}\n` +
-      `totalPrice,${totalPrice}\n\n`,
+      `סה״כ שעות,${totalHours}\n` +
+      `סכום לתשלום,${totalPrice}\n\n`,
     '')
   fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
 }
@@ -37,11 +37,11 @@ export function generateUsersReportCSV(data, filename) {
   const csv = reduce(data,
     (csv, {reports, totalHours, numberOfWorkdays, salary, travelSalary, totalSalary}) => csv +
       _arrayToCSV(reports, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes') +
-      `totalHours,${totalHours}\n` +
-      `numberOfWorkdays,${numberOfWorkdays}\n` +
-      `salary,${salary}\n` +
-      `travelSalary,${travelSalary}\n` +
-      `totalSalary,${totalSalary}\n\n`,
+      `סה״כ שעות,${totalHours}\n` +
+      `מספר ימי עבודה,${numberOfWorkdays}\n` +
+      `משכורת בסיס,${salary}\n` +
+      `תשלום עבור נסיעות,${travelSalary}\n` +
+      `משכורת סופית,${totalSalary}\n\n`,
     '')
   fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
 }
