@@ -89,9 +89,9 @@ class AdvancedReport extends React.Component {
     const {startDate, endDate, clientsFilter, usersFilter, activitiesFilter} = this.state
     this.setState({loading: true})
     const reports = await getReports(startDate, endDate, null, {
-      clients: clientsFilter,
-      users: usersFilter,
-      activities: activitiesFilter
+      clients: clientsFilter.map(client => client._id),
+      users: usersFilter.map(user => user._id),
+      activities: activitiesFilter.map(activity => activity._id)
     })
     this.setState({
       loading: false,
@@ -106,17 +106,17 @@ class AdvancedReport extends React.Component {
   }
 
   downloadCSV() {
-    const {reports, startDate, endDate, clients, clientsFilter, users, usersFilter, activities, activitiesFilter} = this.state
+    const {reports, startDate, endDate, clientsFilter, usersFilter, activitiesFilter} = this.state
     const timestamp = `${moment(startDate).format('YYYY-MM-DD')}-${moment(endDate).format('YYYY-MM-DD')}`
     let basename = ''
     if (clientsFilter.length === 1) {
-      basename += clients.find(({_id}) => clientsFilter[0] === _id).name.replace(/ /g, '-') + '-'
+      basename += clientsFilter[0].name.replace(/ /g, '-') + '-'
     }
     if (usersFilter.length === 1) {
-      basename += users.find(({_id}) => usersFilter[0] === _id).displayName.replace(/ /g, '-') + '-'
+      basename += usersFilter[0].displayName.replace(/ /g, '-') + '-'
     }
     if (activitiesFilter.length === 1) {
-      basename += activities.find(({_id}) => activitiesFilter[0] === _id).name.replace(/ /g, '-') + '-'
+      basename += activitiesFilter[0].name.replace(/ /g, '-') + '-'
     }
     if (!basename) {
       basename = 'report-'
@@ -144,8 +144,8 @@ class AdvancedReport extends React.Component {
     const {loading, reports, startDate, endDate, clients, clientsFilter, activities, activitiesFilter, users, usersFilter, orderBy, orderDirection} = this.state
     return (
       <Grid container direction='column'>
-        <Grid container spacing={8} justify='space-evenly'>
-          <Grid item xs={2}>
+        <Grid container spacing={0} justify='space-evenly'>
+          <Grid item xs={1}>
             <TextField
               fullWidth={true}
               label='התחלה'
@@ -154,7 +154,7 @@ class AdvancedReport extends React.Component {
               onChange={e => this.updateFilter('startDate', e.target.value)}
             />
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs={1}>
             <TextField
               fullWidth={true}
               label='סיום'
@@ -168,50 +168,52 @@ class AdvancedReport extends React.Component {
               label='לקוחות'
               disabled={loading}
               value={clientsFilter}
-              onChange={e => this.updateFilter('clientsFilter', e.target.value)}
+              onChange={value => this.updateFilter('clientsFilter', value)}
               data={clients}
+              displayField='name'
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <MultipleSelection
+              label='פעילויות'
+              disabled={loading}
+              value={activitiesFilter}
+              onChange={value => this.updateFilter('activitiesFilter', value)}
+              data={activities}
               displayField='name'
             />
           </Grid>
           <Grid item xs={2}>
             <MultipleSelection
-              label='פעילויות'
-              disabled={loading}
-              value={activitiesFilter}
-              onChange={e => this.updateFilter('activitiesFilter', e.target.value)}
-              data={activities}
-              displayField='name'
-            />
-          </Grid>
-          <Grid item xs={1}>
-            <MultipleSelection
               label='עובדים'
               disabled={loading}
               value={usersFilter}
-              onChange={e => this.updateFilter('usersFilter', e.target.value)}
+              onChange={value => this.updateFilter('usersFilter', value)}
               data={users}
               displayField='displayName'
             />
           </Grid>
-          <Grid item xs={1}>
-            <Button
-              color='primary'
-              variant='contained'
-              disabled={loading || !startDate || !endDate}
-              onClick={this.load}
-            >
-              הצג
-            </Button>
-          </Grid>
-          <Grid item xs={1}>
-            <Button
-              color='primary'
-              variant='contained'
-              disabled={loading || !startDate || !endDate}
-              onClick={this.downloadCSV}
-            >
-              CSV
-            </Button>
+          <Grid container justify='space-between' xs={1}>
+            <Grid item>
+              <Button
+                color='primary'
+                variant='contained'
+                disabled={loading || !startDate || !endDate}
+                onClick={this.load}
+              >
+                הצג
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                color='primary'
+                variant='contained'
+                disabled={loading || !startDate || !endDate}
+                onClick={this.downloadCSV}
+              >
+                CSV
+              </Button>
+            </Grid>
           </Grid>
         </Grid>
         <Grid item>

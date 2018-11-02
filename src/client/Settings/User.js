@@ -198,11 +198,9 @@ class User extends React.PureComponent {
     }
   }
 
-  updateSelectedClients(e) {
-    const selectedClients = (e.target.value || [])
+  updateSelectedClients(selectedClients = []) {
     this.setState({
-      selectedClients: selectedClients
-        .map(clientId => this.props.clients.find(({_id}) => _id === clientId))
+      selectedClients
     })
     if (this.state.user.activities.some(({clientId}) => !selectedClients.includes(clientId))) {
       this.setValue('activities',
@@ -268,14 +266,6 @@ class User extends React.PureComponent {
       })
       return ret
     }, activities || []))
-  }
-
-  deselectAllActivities() {
-    this.setState({
-      selectedClients: []
-    })
-
-    this.setValue('activities', [])
   }
 
   async resetPassword() {
@@ -555,11 +545,11 @@ class User extends React.PureComponent {
             </Typography>
           </Grid>
           <Grid container>
-            <Grid item xs={10}>
+            <Grid item xs={11}>
               <MultipleSelection
                 label='לקוחות'
                 disabled={saving}
-                value={selectedClients.map(client => client._id)}
+                value={selectedClients}
                 onChange={this.updateSelectedClients}
                 data={clients}
                 displayField='name'
@@ -573,16 +563,6 @@ class User extends React.PureComponent {
                 onClick={this.selectAllActivities}
               >
                 סמן הכל
-              </Button>
-            </Grid>
-            <Grid item xs={1}>
-              <Button
-                color='primary'
-                className={classes.flatButton}
-                disabled={saving}
-                onClick={this.deselectAllActivities}
-              >
-                נקה
               </Button>
             </Grid>
           </Grid>

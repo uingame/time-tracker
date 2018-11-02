@@ -154,14 +154,14 @@ class Client extends React.PureComponent {
     }
   }
 
-  updateActivities(e) {
+  updateActivities(activities) {
     if (this._unmounted) {
       return
     }
 
-    this.setValue('activities', e.target.value.map(id => (
-      this.state.client.activities.find(({activityId}) => activityId === id) || {
-        activityId: id
+    this.setValue('activities', activities.map(({_id}) => (
+      this.state.client.activities.find(({activityId}) => activityId === _id) || {
+        activityId: _id
       }
     )))
 
@@ -209,10 +209,6 @@ class Client extends React.PureComponent {
         hourlyQuote: ''
       }
     ))
-  }
-
-  deselectAllActivities() {
-    this.setValue('activities', [])
   }
 
   async save() {
@@ -378,11 +374,11 @@ class Client extends React.PureComponent {
           <Grid item>
           </Grid>
           <Grid container>
-            <Grid item xs={10}>
+            <Grid item xs={11}>
               <MultipleSelection
                 label='פעילויות'
                 disabled={saving}
-                value={client.activities.map(x => x.activityId)}
+                value={client.activities.map(({activityId}) => activities.find(({_id}) => _id===activityId))}
                 onChange={this.updateActivities}
                 data={activities}
                 displayField='name'
@@ -396,16 +392,6 @@ class Client extends React.PureComponent {
                 onClick={this.selectAllActivities}
               >
                 סמן הכל
-              </Button>
-            </Grid>
-            <Grid item xs={1}>
-              <Button
-                color='primary'
-                className={classes.flatButton}
-                disabled={saving}
-                onClick={this.deselectAllActivities}
-              >
-                נקה
               </Button>
             </Grid>
           </Grid>

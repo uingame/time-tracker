@@ -77,7 +77,7 @@ class ClientsReport extends React.Component {
     this.setState({
       clients,
       months,
-      startDate: months[months.length-1].date,
+      startDate: months[months.length-1],
       loading: false
     })
 
@@ -87,9 +87,9 @@ class ClientsReport extends React.Component {
   async load() {
     const {startDate, clientsFilter} = this.state
     this.setState({loading: true})
-    const endDate = moment.utc(startDate).add(1, 'months').toISOString()
-    const reportsByClient = await getReports(startDate, endDate, 'client', {
-      clients: clientsFilter,
+    const endDate = moment.utc(startDate.date).add(1, 'months').toISOString()
+    const reportsByClient = await getReports(startDate.date, endDate, 'client', {
+      clients: clientsFilter.map(client => client._id),
     })
     this.setState({
       loading: false,
@@ -104,9 +104,9 @@ class ClientsReport extends React.Component {
   }
 
   downloadCSV() {
-    const {reportsByClient, startDate, clientsFilter, clients} = this.state
-    const basename = clientsFilter.length !== 1 ? 'clients' : clients.find(({_id}) => _id === clientsFilter[0]).name.replace(/ /g, '-')
-    const timestamp = moment(startDate).format('YYYY-MM')
+    const {reportsByClient, startDate, clientsFilter} = this.state
+    const basename = clientsFilter.length !== 1 ? 'clients' : clientsFilter[0].name.replace(/ /g, '-')
+    const timestamp = moment(startDate.date).format('YYYY-MM')
     generateClientsReportCSV(reportsByClient, `${basename}-${timestamp}.csv`)
   }
 
@@ -131,24 +131,24 @@ class ClientsReport extends React.Component {
     return (
       <Grid container direction='column'>
         <Grid container spacing={8} justify='space-evenly'>
-          <Grid item xs={2}>
+          <Grid item xs={4}>
             <MultipleSelection
               label='חודש'
               single={true}
               disabled={loading}
               value={startDate}
-              onChange={e => this.updateFilter('startDate', e.target.value)}
+              onChange={value => this.updateFilter('startDate', value)}
               data={months}
               displayField='display'
               keyField='date'
             />
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={4}>
             <MultipleSelection
               label='לקוחות'
               disabled={loading}
               value={clientsFilter}
-              onChange={e => this.updateFilter('clientsFilter', e.target.value)}
+              onChange={value => this.updateFilter('clientsFilter', value)}
               data={clients}
               displayField='name'
             />

@@ -1,80 +1,228 @@
 import React from 'react'
-import { withStyles } from "@material-ui/core/styles"
-import FormControl from "@material-ui/core/FormControl"
-import InputLabel from "@material-ui/core/InputLabel"
-import Input from "@material-ui/core/Input"
-import MenuItem from "@material-ui/core/MenuItem"
-import Select from "@material-ui/core/Select"
+import classNames from 'classnames';
+import { withStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
+import Paper from '@material-ui/core/Paper';
+import Chip from '@material-ui/core/Chip';
+import MenuItem from '@material-ui/core/MenuItem';
+import CancelIcon from '@material-ui/icons/Cancel';
+import { emphasize } from '@material-ui/core/styles/colorManipulator';
+import Select from "react-select"
 
 const styles = theme => ({
-  formControl: {
-    padding: theme.spacing.unit * 2
+  root: {
+    flexGrow: 1,
+    height: 250,
   },
-  cssLabel: {
+  formControl: {
+    padding: '0 16px'
+  },
+  input: {
+    display: 'flex',
+    padding: 0
+  },
+  valueContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    flex: 1,
+    alignItems: 'center',
+  },
+  chip: {
+    margin: `${theme.spacing.unit / 2}px ${theme.spacing.unit / 4}px`,
+  },
+  chipFocused: {
+    backgroundColor: emphasize(
+      theme.palette.type === 'light' ? theme.palette.grey[300] : theme.palette.grey[700],
+      0.08,
+    ),
+  },
+  deleteIcon: {
+    marginLeft: theme.spacing.unit / 2
+  },
+  noOptionsMessage: {
+    padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px`,
+  },
+  singleValue: {
+    fontSize: 16,
+  },
+  placeholder: {
+    position: 'absolute',
+    right: 2,
+    fontSize: 16,
+  },
+  paper: {
+    position: 'absolute',
+    zIndex: 1,
+    marginTop: theme.spacing.unit,
+    left: 0,
+    right: 0,
+  },
+  divider: {
+    height: theme.spacing.unit * 2,
+  },
+  label: {
     left: 'unset',
     direction: 'rtl',
     transformOrigin: 'top right'
   },
-  formInput: {
-    marginTop: 'unset !important'
-  },
-  title: {
-    padding: theme.spacing.unit * 2,
-  },
-  selectText: {
-    paddingRight: 'unset',
-    paddingLeft: 32
-  },
-  selectIcon: {
-    left: 0,
-    right: 'unset'
-  }
-})
+});
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
+function NoOptionsMessage(props) {
+  return (
+    <Typography
+      color="textSecondary"
+      className={props.selectProps.classes.noOptionsMessage}
+      {...props.innerProps}
+    >
+      אין אפשרויות
+    </Typography>
+  );
 }
 
-const MultipleSelection = ({label, single, disabled, value, onChange, data, displayField, classes, keyField='_id'}) => (
-  <FormControl disabled={disabled} className={classes.formControl} fullWidth={true}>
-    <InputLabel
-      FormLabelClasses={{
-        root: classes.cssLabel
-      }}
-      htmlFor="select-multiple-checkbox"
-    >
-      {label}
-    </InputLabel>
-    <Select
-      multiple={!single}
-      value={value}
-      onChange={onChange}
-      input={<Input
-        classes={{
-          root: classes.formInput
-        }}
-        id="select-multiple-checkbox"
-      />}
-      MenuProps={MenuProps}
-      classes={{
-        icon: classes.selectIcon,
-        select: classes.selectText
-      }}
-    >
-      {data.map(item => (
-        <MenuItem key={item[keyField]} value={item[keyField]}>
-          {item[displayField]}
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-)
+function inputComponent({ inputRef, ...props }) {
+  return <div ref={inputRef} {...props} />;
+}
 
-export default withStyles(styles)(MultipleSelection)
+function Control(props) {
+  return (
+    <TextField
+      fullWidth
+      InputProps={{
+        inputComponent,
+        inputProps: {
+          className: props.selectProps.classes.input,
+          inputRef: props.innerRef,
+          children: props.children,
+          ...props.innerProps,
+        },
+      }}
+      classes={{
+        root: props.selectProps.classes.formControl
+      }}
+      {...props.selectProps.textFieldProps}
+    />
+  );
+}
+
+function Option(props) {
+  return (
+    <MenuItem
+      buttonRef={props.innerRef}
+      selected={props.isFocused}
+      component="div"
+      style={{
+        fontWeight: props.isSelected ? 500 : 400,
+      }}
+      {...props.innerProps}
+    >
+      {props.children}
+    </MenuItem>
+  );
+}
+
+function Placeholder(props) {
+  return (
+    <Typography
+      color="textSecondary"
+      className={props.selectProps.classes.placeholder}
+      {...props.innerProps}
+    >
+      {props.children}
+    </Typography>
+  );
+}
+
+function SingleValue(props) {
+  return (
+    <Typography className={props.selectProps.classes.singleValue} {...props.innerProps}>
+      {props.children}
+    </Typography>
+  );
+}
+
+function ValueContainer(props) {
+  return <div className={props.selectProps.classes.valueContainer}>{props.children}</div>;
+}
+
+function MultiValue({data, selectProps, removeProps, isFocused}) {
+  // const item = selectProps.options.find(item => selectProps.getOptionValue(item)===data)
+  // const label = selectProps.getOptionLabel(item)
+  return (
+    <Chip
+      tabIndex={-1}
+      label={selectProps.getOptionLabel(data)}
+      className={classNames(selectProps.classes.chip, {
+        [selectProps.classes.chipFocused]: isFocused,
+      })}
+      onDelete={removeProps.onClick}
+      deleteIcon={<CancelIcon className={selectProps.classes.deleteIcon} {...removeProps} />}
+    />
+  );
+}
+
+function Menu(props) {
+  return (
+    <Paper square className={props.selectProps.classes.paper} {...props.innerProps}>
+      {props.children}
+    </Paper>
+  );
+}
+
+const components = {
+  Control,
+  Menu,
+  MultiValue,
+  NoOptionsMessage,
+  Option,
+  Placeholder,
+  SingleValue,
+  ValueContainer,
+}
+
+class MultipleSelection extends React.Component {
+
+  static defaultProps = {
+    keyField: '_id'
+  }
+
+  render() {
+
+    const {label, single, disabled, value, onChange, data, displayField, classes, keyField, theme} = this.props
+
+    const selectStyles = {
+      input: base => ({
+        ...base,
+        color: theme.palette.text.primary,
+        '& input': {
+          font: 'inherit',
+        },
+      }),
+    };
+
+    return (
+      <Select
+        classes={classes}
+        styles={selectStyles}
+        options={data}
+        components={components}
+        textFieldProps={{
+          label,
+          InputLabelProps: {
+            shrink: true,
+            className: classes.label
+          },
+        }}
+        value={value}
+        getOptionLabel={item => item[displayField]}
+        getOptionValue={item => item[keyField]}
+        onChange={onChange}
+        isMulti={!single}
+        isDisabled={disabled}
+        placeholder={`בחר ${label}`}
+      />
+    )
+  }
+}
+
+export default withStyles(styles, { withTheme: true })(MultipleSelection)
