@@ -1,6 +1,8 @@
 import React from 'react'
+import {sortBy} from 'lodash'
 import moment from 'moment'
-import { Grid, withStyles, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody } from '@material-ui/core';
+import memoizeOne from 'memoize-one';
+import { Grid, withStyles, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, TableSortLabel } from '@material-ui/core';
 import TextField from 'common/TextField'
 import MultipleSelection from 'common/MultipleSelection'
 import ActivityIndicator from 'common/ActivityIndicator'
@@ -19,6 +21,33 @@ const styles = theme => ({
   }
 })
 
+const getSortedData = memoizeOne((reports = [], orderBy, orderDirection) => {
+  if (!orderBy) {
+    return reports
+  }
+
+  const _orderBy = orderBy !== 'weekday' ? orderBy : ({date}) => ((moment(date).day()+1)%7)
+
+  const sortedData = sortBy(reports, _orderBy)
+  if (orderDirection === 'desc') {
+    sortedData.reverse()
+  }
+  return sortedData
+})
+
+const HeaderCell = withStyles(styles)(({classes, field, selectedField, selectedDirection, onClick, children}) => (
+  <TableCell className={classes.cell}>
+    <TableSortLabel
+      active={selectedField === field}
+      direction={selectedDirection}
+      onClick={() => onClick && onClick(field)}
+    >
+      {children}
+    </TableSortLabel>
+  </TableCell>
+))
+
+
 class AdvancedReport extends React.Component {
 
   state = {
@@ -31,7 +60,9 @@ class AdvancedReport extends React.Component {
     activitiesFilter: [],
     users: [],
     usersFilter: [],
-    reports: []
+    reports: [],
+    orderBy: '',
+    orderDirection: 'asc'
   }
 
   constructor(props) {
@@ -93,9 +124,24 @@ class AdvancedReport extends React.Component {
     generateAdvancedReportCSV(reports, `${basename}${timestamp}.csv`)
   }
 
+  applySort(key) {
+    const {orderBy, orderDirection} = this.state
+    if (orderBy !== key) {
+      this.setState({
+        orderBy: key,
+        orderDirection: 'asc'
+      })
+      return
+    }
+
+    this.setState({
+      orderDirection: orderDirection === 'asc' ? 'desc' : 'asc'
+    })
+  }
+
   render() {
     const {classes} = this.props
-    const {loading, reports, startDate, endDate, clients, clientsFilter, activities, activitiesFilter, users, usersFilter} = this.state
+    const {loading, reports, startDate, endDate, clients, clientsFilter, activities, activitiesFilter, users, usersFilter, orderBy, orderDirection} = this.state
     return (
       <Grid container direction='column'>
         <Grid container spacing={8} justify='space-evenly'>
@@ -174,19 +220,19 @@ class AdvancedReport extends React.Component {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell className={classes.cell}>תאריך</TableCell>
-                    <TableCell className={classes.cell}>יום</TableCell>
-                    <TableCell className={classes.cell}>זמן התחלה</TableCell>
-                    <TableCell className={classes.cell}>זמן סיום</TableCell>
-                    <TableCell className={classes.cell}>מס שעות</TableCell>
-                    <TableCell className={classes.cell}>לקוח</TableCell>
-                    <TableCell className={classes.cell}>עובד</TableCell>
-                    <TableCell className={classes.cell}>פעילות</TableCell>
-                    <TableCell className={classes.cell}>הערות</TableCell>
+                    <HeaderCell field='date' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>תאריך</HeaderCell>
+                    <HeaderCell field='weekday' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>יום</HeaderCell>
+                    <HeaderCell field='startTime' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>זמן התחלה</HeaderCell>
+                    <HeaderCell field='endTime' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>זמן סיום</HeaderCell>
+                    <HeaderCell field='duration' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>מס שעות</HeaderCell>
+                    <HeaderCell field='clientName' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>לקוח</HeaderCell>
+                    <HeaderCell field='username' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>עובד</HeaderCell>
+                    <HeaderCell field='activityName' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>פעילות</HeaderCell>
+                    <HeaderCell field='notes' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>הערות</HeaderCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {reports.map(report => {
+                  {getSortedData(reports, orderBy, orderDirection).map(report => {
                     const m = moment(report.date)
                     return (
                       <TableRow key={report._id}>
