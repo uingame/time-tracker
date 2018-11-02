@@ -231,6 +231,7 @@ class AdvancedReport extends React.Component {
                     <HeaderCell field='username' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>עובד</HeaderCell>
                     <HeaderCell field='activityName' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>פעילות</HeaderCell>
                     <HeaderCell field='notes' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>הערות</HeaderCell>
+                    <HeaderCell field='modifiedAt' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>זמן עדכון</HeaderCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -247,6 +248,7 @@ class AdvancedReport extends React.Component {
                         <TableCell className={classes.cell}>{report.username}</TableCell>
                         <TableCell className={classes.cell}>{report.activityName}</TableCell>
                         <TableCell className={classes.cell}>{report.notes}</TableCell>
+                        <TableCell className={classes.cell}>{moment(report.modifiedAt).format('HH:mm D/MM/YYYY')}</TableCell>
                       </TableRow>
                     )
                   })}

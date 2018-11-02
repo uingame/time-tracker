@@ -10,23 +10,24 @@ const HEADERS = {
   clientName: 'לקוח',
   activityName: 'פעילות',
   username: 'עובד',
-  notes: 'הערות'
+  notes: 'הערות',
+  modifiedAt: 'זמן עדכון'
 }
 
 export function generateTimeTrackingCSV(data, filename) {
-  const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'activityName', 'notes')
+  const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'activityName', 'notes', 'modifiedAt')
   fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
 }
 
 export function generateAdvancedReportCSV(data, filename) {
-  const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes')
+  const csv = _arrayToCSV(data, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes', 'modifiedAt')
   fileDownload(UNIVERSAL_BOM + csv, filename, "text/csv;charset=utf-8")
 }
 
 export function generateClientsReportCSV(data, filename) {
   const csv = reduce(data,
     (csv, {reports, totalHours, totalPrice}) => csv +
-      _arrayToCSV(reports, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes') +
+      _arrayToCSV(reports, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes', 'modifiedAt') +
       `סה״כ שעות,${totalHours}\n` +
       `סכום לתשלום,${totalPrice}\n\n`,
     '')
@@ -36,7 +37,7 @@ export function generateClientsReportCSV(data, filename) {
 export function generateUsersReportCSV(data, filename) {
   const csv = reduce(data,
     (csv, {reports, totalHours, numberOfWorkdays, salary, travelSalary, totalSalary}) => csv +
-      _arrayToCSV(reports, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes') +
+      _arrayToCSV(reports, 'date', 'startTime', 'endTime', 'duration', 'clientName', 'username', 'activityName', 'notes', 'modifiedAt') +
       `סה״כ שעות,${totalHours}\n` +
       `מספר ימי עבודה,${numberOfWorkdays}\n` +
       `משכורת בסיס,${salary}\n` +
