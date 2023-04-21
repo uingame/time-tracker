@@ -12,7 +12,7 @@ async function configureMongoose() {
     useNewUrlParser: true,
     reconnectTries: Number.MAX_VALUE
   })
-
+ 
   const db = mongoose.connection;
   db.on('error', console.error.bind(console, 'mongodb connection error:'));
   db.once('open', () => {
