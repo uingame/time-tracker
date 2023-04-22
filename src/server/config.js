@@ -1,5 +1,5 @@
 module.exports = {
-  env: process.env.NODE_ENV || 'development',
+  env: process.env.NODE_ENV || 'production',
   port: process.env.PORT || 3000,
   debug: `${process.env.DEBUG}`.toLowerCase() === 'true',
 
