@@ -11,21 +11,21 @@
     "postinstall": "NODE_ENV=production webpack"
   },
   "engines": {
-    "node": "9.11.1"
+    "node": "^14.17.0"
   },
   "author": "Arik Maor <arikmaor@gmail.com>",
   "license": "MIT",
   "private": true,
   "dependencies": {
     "axios": "^0.18.0",
-    "bcrypt": "^3.0.0",
+    "bcrypt": "^5.1.0",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "express-history-api-fallback": "^2.2.1",
     "jsonwebtoken": "^8.2.1",
     "lodash": "^4.17.10",
     "moment": "^2.22.2",
-    "mongoose": "^5.2.12",
+    "mongoose": "^7.0.4",
     "mongoose-type-email": "^1.0.9",
     "nodemailer": "^4.6.8",
     "nodemailer-sendgrid-transport": "^0.2.0",
