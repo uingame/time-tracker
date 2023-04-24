@@ -17,6 +17,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.10",
     "axios": "^0.18.0",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.18.2",
