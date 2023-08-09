@@ -40,8 +40,19 @@ const schema = new mongoose.Schema({
       delete ret.password
       delete ret.isSystem
     },
-    getters: true
-  }
+    getters: true,
+    virtuals: true
+  }, 
+  toJSON:  {
+    transform: (doc, ret) => {
+      delete ret.__v
+      delete ret.id
+      delete ret.password
+      delete ret.isSystem
+    },
+    getters: true,
+    virtuals: true
+  }, 
 })
 
 schema.virtual('displayName').get(function() {

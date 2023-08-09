@@ -39,6 +39,7 @@ export async function signIn(username, password) {
     const errorFromServer = get(err, 'response.data.error')
     if (errorFromServer) {
       throw new Error(errorFromServer)
+      console.log('Error', errorFromServer);
     } else {
       throw err
     }

@@ -1,6 +1,7 @@
 const {configureMongoose} = require('../src/server/mongoose')
 const {addUser} = require('../src/server/api/users/logic')
 
+
 run()
 async function run() {
   try {

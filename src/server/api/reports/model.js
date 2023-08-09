@@ -20,7 +20,15 @@ const schema = new mongoose.Schema({
         ret.date = ret.date.toISOString().split('T', 1)[0]
       }
     }
-  }
+  },
+  toJSON :{
+    transform: (doc, ret) => {
+      delete ret.__v
+      if (ret.date) {
+        ret.date = ret.date.toISOString().split('T', 1)[0]
+      }
+    }
+  },
 })
 
 module.exports = mongoose.model('Report', schema);

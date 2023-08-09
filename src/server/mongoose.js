@@ -3,16 +3,16 @@ const config = require('./config')
 
 require('mongoose-type-email')
 mongoose.set('debug', config.debug)
-mongoose.set('useCreateIndex', true)
-mongoose.set('useFindAndModify', false)
+// mongoose.set('useCreateIndex', true)
+// mongoose.set('useFindAndModify', false)
 mongoose.plugin(lastModifiedPlugin)
 
 async function configureMongoose() {
   await mongoose.connect(config.mongoUri, {
     useNewUrlParser: true,
-    reconnectTries: Number.MAX_VALUE
+    // reconnectTries: Number.MAX_VALUE
   })
-
+ 
   const db = mongoose.connection;
   db.on('error', console.error.bind(console, 'mongodb connection error:'));
   db.once('open', () => {
