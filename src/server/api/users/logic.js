@@ -26,7 +26,7 @@ async function populate(user) {
 async function sendPasswordMail(user, password) {
   try {
     await mailer.sendMail({
-      from: 'contact@uingame.co.il',
+      from: '"UINGAME" <contact@uingame.co.il>',
       to: user.email,
       subject: 'פרטי כניסה למערכת דיווחי שעות - שמיר יעוץ והדרכה',
       text: `
