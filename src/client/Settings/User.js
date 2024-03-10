@@ -202,11 +202,11 @@ class User extends React.PureComponent {
     this.setState({
       selectedClients
     })
-    if (this.state.user.activities.some(({clientId}) => !selectedClients.includes(clientId))) {
-      this.setValue('activities',
-        this.state.user.activities.filter(({clientId}) => selectedClients.includes(clientId))
-      )
-    }
+    // if (this.state.user.activities.some(({clientId}) => !selectedClients.includes(clientId))) {
+      // this.setValue('activities',
+      //   this.state.user.activities.filter(({clientId}) => selectedClients.includes(clientId))
+      // )
+    // }
   }
 
   updateActivityField(activityId, clientId, key, val) {
