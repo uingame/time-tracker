@@ -1,77 +1,73 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import {Prompt} from 'react-router-dom'
-import {get, uniq} from 'lodash'
-import Grid from '@material-ui/core/Grid'
-import withStyles from '@material-ui/core/styles/withStyles';
-import Typography from '@material-ui/core/Typography';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Button from '@material-ui/core/Button';
+import React from "react";
+import PropTypes from "prop-types";
+import { Prompt } from "react-router-dom";
+import { get, uniq } from "lodash";
+import Grid from "@material-ui/core/Grid";
+import withStyles from "@material-ui/core/styles/withStyles";
+import Typography from "@material-ui/core/Typography";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
+import Button from "@material-ui/core/Button";
 
-import IconButton from '@material-ui/core/IconButton'
-import SaveIcon from '@material-ui/icons/Save'
-import DeleteIcon from '@material-ui/icons/Delete'
+import IconButton from "@material-ui/core/IconButton";
+import SaveIcon from "@material-ui/icons/Save";
+import DeleteIcon from "@material-ui/icons/Delete";
 
-import TextField from 'common/TextField'
-import ActivityIndicator from 'common/ActivityIndicator'
-import MultipleSelection from 'common/MultipleSelection'
+import TextField from "common/TextField";
+import ActivityIndicator from "common/ActivityIndicator";
+import MultipleSelection from "common/MultipleSelection";
 
-import * as usersService from 'core/usersService'
-import { MenuItem } from '@material-ui/core';
+import * as usersService from "core/usersService";
+import { MenuItem } from "@material-ui/core";
 
-
-const styles = theme => ({
+const styles = (theme) => ({
   flatButton: {
-    margin: theme.spacing.unit
+    margin: theme.spacing.unit,
   },
   title: {
     padding: theme.spacing.unit * 2,
   },
   table: {
-    padding: theme.spacing.unit * 2
+    padding: theme.spacing.unit * 2,
   },
   cell: {
-    textAlign: 'right'
-  }
-})
+    textAlign: "right",
+  },
+});
 
 const EMPTY_USER = {
-  _id: '',
-  username: '',
+  _id: "",
+  username: "",
   isAdmin: false,
-  firstName: '',
-  lastName: '',
-  idNumber: '',
-  address: '',
-  phone: '',
-  email: '',
-  startDate: '',
+  firstName: "",
+  lastName: "",
+  idNumber: "",
+  address: "",
+  phone: "",
+  email: "",
+  startDate: "",
 
-  type: 'employee',
+  type: "employee",
   lastReportDay: 10,
 
   defaultHourlyQuote: 0,
   defaultTravelQuote: 0,
 
-  activities: []
-}
+  activities: [],
+};
 
 class User extends React.PureComponent {
-
   static propTypes = {
     classes: PropTypes.object.isRequired,
-    userId: PropTypes.oneOfType([
-      PropTypes.number,
-      PropTypes.oneOf(['new'])
-    ]).isRequired,
+    userId: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf(["new"])])
+      .isRequired,
     clients: PropTypes.array.isRequired,
-    onUpdate: PropTypes.func.isRequired
+    onUpdate: PropTypes.func.isRequired,
   };
 
   state = {
@@ -80,292 +76,341 @@ class User extends React.PureComponent {
     user: null,
     hasChanges: false,
     errorFields: [],
-    selectedClients: []
-  }
+    selectedClients: [],
+    initialActivities: [],
+  };
 
   constructor(props) {
-    super(props)
-    if (props.userId == 'new') {
+    super(props);
+    if (props.userId === "new") {
+      const user = {
+        ...EMPTY_USER,
+        activities: [], // No activities initially
+      };
+
       this.state = {
         ...this.state,
         loading: false,
-        selectedClients: props.clients,
-        user: {
-          ...EMPTY_USER,
-          activities: props.clients.reduce((ret, {_id, activities}) => {
-            activities && activities.forEach(({activityId}) => {
-              ret.push({
-                clientId: _id,
-                activityId
-              })
-            })
-            return ret
-          }, [])
-        }
-      }
+        selectedClients: [], // Empty array for new users
+        user,
+        initialActivities: user.activities, // Set initial activities
+      };
     } else {
-      this.fetchUser(props.userId)
+      this.fetchUser(props.userId);
     }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.userId !== this.props.userId) {
-      if (nextProps.userId === 'new') {
-        const {clients} = nextProps
+      if (nextProps.userId === "new") {
+        // Clear state for a new user
         this.setState({
-          ...this.state,
           loading: false,
           saving: false,
           errorFields: [],
-          selectedClients: clients,
+          selectedClients: [], // Ensure selectedClients is empty
           hasChanges: false,
           user: {
             ...EMPTY_USER,
-            activities: clients.reduce((ret, {_id, activities}) => {
-              activities && activities.forEach(({activityId}) => {
-                ret.push({
-                  clientId: _id,
-                  activityId
-                })
-              })
-              return ret
-            }, [])
-          }
-        })
+            activities: [], // Ensure activities is empty
+          },
+          initialActivities: [], // Ensure initialActivities is empty
+        });
       } else {
+        // Load existing user
         this.setState({
           loading: true,
           saving: false,
           errorFields: [],
           hasChanges: false,
-          user: null
-        })
-        this.fetchUser(nextProps.userId)
+          user: null,
+        });
+        this.fetchUser(nextProps.userId);
       }
     }
   }
 
   componentWillUnmount() {
-    this._umounted = true
+    this._umounted = true;
   }
 
   async fetchUser(userId) {
-    const user = await usersService.getUserById(userId)
+    const user = await usersService.getUserById(userId);
+
+    const selectedClients = uniq((user.activities || []).map((a) => a.clientId))
+      .map((clientId) => this.props.clients.find(({ _id }) => _id === clientId))
+      .filter(Boolean);
     this.setState({
       loading: false,
       hasChanges: false,
       user: {
         ...EMPTY_USER,
-        ...user
+        ...user,
       },
-      selectedClients: uniq((user.activities || []).map(a => a.clientId))
-        .map(clientId => this.props.clients.find(({_id}) => _id === clientId))
-    })
+      selectedClients,
+      initialActivities: user.activities, // Set initial activities after fetching user
+    });
   }
 
   setValue(key, value) {
     if (this._umounted) {
-      return
+      return;
     }
 
     this.setState({
       hasChanges: true,
       user: {
         ...this.state.user,
-        [key]: value
-      }
-    })
+        [key]: value,
+      },
+    });
 
     if (this.state.errorFields.includes(key)) {
       this.setState({
-        errorFields: this.state.errorFields.filter(field => field !== key)
-      })
+        errorFields: this.state.errorFields.filter((field) => field !== key),
+      });
     }
   }
 
   updateActivities(e) {
-    this.setValue('activities', e.target.value.map(id => (
-      this.state.user.activities.find(({activityId}) => activityId === id) || {
-        activityId: id,
-        hourlyQuote: ''
-      }
-    )))
+    this.setValue(
+      "activities",
+      e.target.value.map(
+        (id) =>
+          this.state.user.activities.find(
+            ({ activityId }) => activityId === id
+          ) || {
+            activityId: id,
+            hourlyQuote: "",
+          }
+      )
+    );
 
-    if (this.state.errorFields.find(errField => errField.startsWith('activities'))) {
+    if (
+      this.state.errorFields.find((errField) =>
+        errField.startsWith("activities")
+      )
+    ) {
       this.setState({
-        errorFields: this.state.errorFields.filter(field => !field.startsWith('activities'))
-      })
+        errorFields: this.state.errorFields.filter(
+          (field) => !field.startsWith("activities")
+        ),
+      });
     }
   }
 
   updateSelectedClients(selectedClients = []) {
-    this.setState({
-      selectedClients
-    })
-    // if (this.state.user.activities.some(({clientId}) => !selectedClients.includes(clientId))) {
-      // this.setValue('activities',
-      //   this.state.user.activities.filter(({clientId}) => selectedClients.includes(clientId))
-      // )
-    // }
+    const { user, initialActivities } = this.state;
+
+    const filteredActivities = user.activities.filter(({ clientId }) =>
+      selectedClients.some((client) => client._id === clientId)
+    );
+
+    const hasChanges =
+      filteredActivities.length !== initialActivities.length ||
+      filteredActivities.some(
+        (activity, index) =>
+          initialActivities[index] &&
+          (activity.clientId !== initialActivities[index].clientId ||
+            activity.activityId !== initialActivities[index].activityId)
+      );
+
+    this.setState(
+      {
+        selectedClients,
+        user: {
+          ...user,
+          activities: filteredActivities,
+        },
+        hasChanges,
+      },
+      () => {
+        console.log("Updated State:", this.state);
+      }
+    );
   }
 
   updateActivityField(activityId, clientId, key, val) {
-    const {activities} = this.state.user
-    const idx = activities.findIndex(a => a.activityId === activityId && a.clientId === clientId)
+    const { activities } = this.state.user;
+    const idx = activities.findIndex(
+      (a) => a.activityId === activityId && a.clientId === clientId
+    );
     if (idx === -1) {
-      return
+      return;
     }
-    this.setValue('activities', [
+    this.setValue("activities", [
       ...activities.slice(0, idx),
       {
         ...activities[idx],
-        [key]: val
+        [key]: val,
       },
-      ...activities.slice(idx+1)
-    ])
+      ...activities.slice(idx + 1),
+    ]);
 
-    const errKey = `activities.${idx}.${key}`
+    const errKey = `activities.${idx}.${key}`;
     if (this.state.errorFields.includes(errKey)) {
       this.setState({
-        errorFields: this.state.errorFields.filter(field => field !== errKey)
-      })
+        errorFields: this.state.errorFields.filter((field) => field !== errKey),
+      });
     }
   }
 
   handleActivityCheckbox(clientId, activityId, checked) {
     if (checked) {
-      this.setValue('activities', [
+      this.setValue("activities", [
         ...this.state.user.activities,
         {
           clientId,
-          activityId
-        }
-      ])
+          activityId,
+        },
+      ]);
     } else {
-      this.setValue('activities', this.state.user.activities.filter(
-        activity => !(activity.clientId === clientId && activity.activityId === activityId)
-      ))
+      this.setValue(
+        "activities",
+        this.state.user.activities.filter(
+          (activity) =>
+            !(
+              activity.clientId === clientId &&
+              activity.activityId === activityId
+            )
+        )
+      );
     }
   }
 
   selectAllActivities() {
-    const {clients} = this.props
-    const {user: {activities}} = this.state
+    const { clients } = this.props;
+    const {
+      user: { activities },
+    } = this.state;
     this.setState({
-      selectedClients: clients
-    })
+      selectedClients: clients,
+    });
 
-    this.setValue('activities', clients.reduce((ret, {_id, activities}) => {
-      activities && activities.forEach(({activityId}) => {
-        if (!ret.some(x => x.clientId === _id && x.activityId === activityId)) {
-          ret.push({
-            clientId: _id,
-            activityId
-          })
-        }
-      })
-      return ret
-    }, activities || []))
+    this.setValue(
+      "activities",
+      clients.reduce((ret, { _id, activities }) => {
+        activities &&
+          activities.forEach(({ activityId }) => {
+            if (
+              !ret.some(
+                (x) => x.clientId === _id && x.activityId === activityId
+              )
+            ) {
+              ret.push({
+                clientId: _id,
+                activityId,
+              });
+            }
+          });
+        return ret;
+      }, activities || [])
+    );
   }
 
   async resetPassword() {
-    this.setState({saving : true})
-    const {_id} = this.state.user
+    this.setState({ saving: true });
+    const { _id } = this.state.user;
     try {
-      await usersService.resetPassword(_id)
+      await usersService.resetPassword(_id);
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
 
-    this.setState({saving: false})
+    this.setState({ saving: false });
   }
 
   async save() {
     this.setState({
       saving: true,
       errorFields: [],
-    })
-    const {_id, ...settings} = this.state.user
+    });
+    const { _id, ...settings } = this.state.user;
     try {
-      const user = _id ?
-        await usersService.updateUser(_id, settings) :
-        await usersService.addUser(settings)
+      const user = _id
+        ? await usersService.updateUser(_id, settings)
+        : await usersService.addUser(settings);
 
       this.setState({
         user: {
           ...EMPTY_USER,
-          ...user
+          ...user,
         },
         hasChanges: false,
         errorFields: [],
-        saving: false
-      })
-      this.props.onUpdate(user)
+        saving: false,
+        initialActivities: user.activities, // Update initial activities after saving
+      });
+      this.props.onUpdate(user);
     } catch (err) {
       this.setState({
-        saving: false
-      })
-      const fields = get(err, 'response.data.fields')
+        saving: false,
+      });
+      const fields = get(err, "response.data.fields");
       if (fields) {
         this.setState({
-          errorFields: Object.keys(fields)
-        })
+          errorFields: Object.keys(fields),
+        });
       }
-
     }
   }
 
   async delete() {
-    if (!confirm('האם אתה בטוח שברצונך למחוק את העובד?')) {
-      return
+    if (!confirm("האם אתה בטוח שברצונך למחוק את העובד?")) {
+      return;
     }
 
     this.setState({
-      saving: true
-    })
-    const {userId} = this.props
-    await usersService.deleteUser(userId)
+      saving: true,
+    });
+    const { userId } = this.props;
+    await usersService.deleteUser(userId);
     this.setState({
-      hasChanges: false
-    })
-    this.props.onDelete(userId)
+      hasChanges: false,
+    });
+    this.props.onDelete(userId);
   }
 
   render() {
-    const {classes, clients} = this.props
-    const {loading, user, hasChanges, saving, errorFields, selectedClients} = this.state
+    const { classes, clients } = this.props;
+    const { loading, user, hasChanges, saving, errorFields, selectedClients } =
+      this.state;
 
     if (loading) {
-      return <ActivityIndicator />
+      return <ActivityIndicator />;
     }
 
     return (
       <React.Fragment>
         <Prompt
           when={hasChanges}
-          message='שינויים לא נשמרו, האם לעזוב את הדף?'
+          message="שינויים לא נשמרו, האם לעזוב את הדף?"
         />
-        <Grid container direction='column'>
-          <Grid container justify='space-between'>
+        <Grid container direction="column">
+          <Grid container justify="space-between">
             <Grid item>
-              <Typography className={classes.title} variant='title'>
+              <Typography className={classes.title} variant="title">
                 פרטי עובד
               </Typography>
             </Grid>
             <Grid item>
               {saving && <ActivityIndicator />}
-              {!saving && hasChanges && <IconButton onClick={this.save}>
-                <SaveIcon />
-              </IconButton>}
-              {!saving && user._id && <IconButton onClick={this.delete}>
-                <DeleteIcon />
-              </IconButton>}
+              {!saving && hasChanges && (
+                <IconButton onClick={this.save}>
+                  <SaveIcon />
+                </IconButton>
+              )}
+              {!saving && user._id && (
+                <IconButton onClick={this.delete}>
+                  <DeleteIcon />
+                </IconButton>
+              )}
             </Grid>
           </Grid>
           <Grid container>
             <Grid item xs={3}>
               <TextField
-                label='מספר עובד'
+                label="מספר עובד"
                 value={user._id}
                 fullWidth
                 disabled
@@ -373,23 +418,23 @@ class User extends React.PureComponent {
             </Grid>
             <Grid item xs={3}>
               <TextField
-                label='ת.ז.'
-                value={user.idNumber || ''}
-                onChange={e => this.setValue('idNumber', e.target.value)}
+                label="ת.ז."
+                value={user.idNumber || ""}
+                onChange={(e) => this.setValue("idNumber", e.target.value)}
                 fullWidth
                 disabled={saving}
-                error={errorFields.includes('idNumber')}
+                error={errorFields.includes("idNumber")}
               />
             </Grid>
             <Grid item xs={3}>
               <TextField
-                type='date'
-                label='תאריך תחילת עבודה'
+                type="date"
+                label="תאריך תחילת עבודה"
                 value={getFormattedDate(user.startDate)}
-                onChange={e => this.setValue('startDate', e.target.value)}
+                onChange={(e) => this.setValue("startDate", e.target.value)}
                 fullWidth
                 disabled={saving}
-                error={errorFields.includes('startDate')}
+                error={errorFields.includes("startDate")}
               />
             </Grid>
             <Grid item xs={3}>
@@ -397,7 +442,7 @@ class User extends React.PureComponent {
                 control={
                   <Checkbox
                     checked={user.isAdmin}
-                    onChange={(e, checked) => this.setValue('isAdmin', checked)}
+                    onChange={(e, checked) => this.setValue("isAdmin", checked)}
                     disabled={saving}
                   />
                 }
@@ -408,73 +453,73 @@ class User extends React.PureComponent {
           <Grid container>
             <Grid item xs={3}>
               <TextField
-                label='שם פרטי'
-                value={user.firstName || ''}
-                onChange={e => this.setValue('firstName', e.target.value)}
+                label="שם פרטי"
+                value={user.firstName || ""}
+                onChange={(e) => this.setValue("firstName", e.target.value)}
                 fullWidth
                 disabled={saving}
-                error={errorFields.includes('firstName')}
+                error={errorFields.includes("firstName")}
               />
             </Grid>
             <Grid item xs={3}>
               <TextField
-                label='שם משפחה'
-                value={user.lastName || ''}
-                onChange={e => this.setValue('lastName', e.target.value)}
+                label="שם משפחה"
+                value={user.lastName || ""}
+                onChange={(e) => this.setValue("lastName", e.target.value)}
                 fullWidth
                 disabled={saving}
-                error={errorFields.includes('lastName')}
+                error={errorFields.includes("lastName")}
               />
             </Grid>
             <Grid item xs={6}>
               <TextField
-                label='טלפון'
-                value={user.phone || ''}
-                onChange={e => this.setValue('phone', e.target.value)}
+                label="טלפון"
+                value={user.phone || ""}
+                onChange={(e) => this.setValue("phone", e.target.value)}
                 fullWidth
                 disabled={saving}
-                error={errorFields.includes('phone')}
-              />
-            </Grid>
-          </Grid>
-          <Grid container>
-            <Grid item xs={6}>
-              <TextField
-                label='כתובת'
-                value={user.address || ''}
-                onChange={e => this.setValue('address', e.target.value)}
-                fullWidth
-                disabled={saving}
-                error={errorFields.includes('address')}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label='email'
-                value={user.email || ''}
-                onChange={e => this.setValue('email', e.target.value)}
-                fullWidth
-                disabled={saving}
-                error={errorFields.includes('email')}
+                error={errorFields.includes("phone")}
               />
             </Grid>
           </Grid>
           <Grid container>
             <Grid item xs={6}>
               <TextField
-                label='שם משתמש'
-                value={user.username || ''}
-                onChange={e => this.setValue('username', e.target.value)}
+                label="כתובת"
+                value={user.address || ""}
+                onChange={(e) => this.setValue("address", e.target.value)}
                 fullWidth
                 disabled={saving}
-                error={errorFields.includes('username')}
+                error={errorFields.includes("address")}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="email"
+                value={user.email || ""}
+                onChange={(e) => this.setValue("email", e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes("email")}
+              />
+            </Grid>
+          </Grid>
+          <Grid container>
+            <Grid item xs={6}>
+              <TextField
+                label="שם משתמש"
+                value={user.username || ""}
+                onChange={(e) => this.setValue("username", e.target.value)}
+                fullWidth
+                disabled={saving}
+                error={errorFields.includes("username")}
               />
             </Grid>
             <Grid item xs={6}>
               {user._id && (
                 <Button
-                  color='primary'
-                  variant='contained'
+                  color="primary"
+                  variant="contained"
                   disabled={saving}
                   onClick={this.resetPassword}
                 >
@@ -484,80 +529,84 @@ class User extends React.PureComponent {
             </Grid>
           </Grid>
           <Grid item>
-            <Typography className={classes.title} variant='title'>
+            <Typography className={classes.title} variant="title">
               שכר
             </Typography>
           </Grid>
           <Grid container>
             <Grid item xs={2}>
               <TextField
-                label='סוג עובד'
+                label="סוג עובד"
                 fullWidth
                 select
-                value={user.type || ''}
-                onChange={e => this.setValue('type', e.target.value)}
+                value={user.type || ""}
+                onChange={(e) => this.setValue("type", e.target.value)}
                 disabled={saving}
-                error={errorFields.includes('type')}
+                error={errorFields.includes("type")}
               >
-                <MenuItem value='employee'>שכיר</MenuItem>
-                <MenuItem value='contractor'>עצמאי</MenuItem>
+                <MenuItem value="employee">שכיר</MenuItem>
+                <MenuItem value="contractor">עצמאי</MenuItem>
               </TextField>
             </Grid>
             <Grid item xs={2}>
               <TextField
-                label='תעריף שעתי'
+                label="תעריף שעתי"
                 fullWidth
-                type='number'
-                value={user.defaultHourlyQuote || ''}
-                onChange={e => this.setValue('defaultHourlyQuote', e.target.value)}
+                type="number"
+                value={user.defaultHourlyQuote || ""}
+                onChange={(e) =>
+                  this.setValue("defaultHourlyQuote", e.target.value)
+                }
                 disabled={saving}
-                error={errorFields.includes('defaultHourlyQuote')}
+                error={errorFields.includes("defaultHourlyQuote")}
               />
             </Grid>
             <Grid item xs={2}>
               <TextField
-                label='תעריף נסיעות'
+                label="תעריף נסיעות"
                 fullWidth
-                type='number'
-                value={user.defaultTravelQuote || ''}
-                onChange={e => this.setValue('defaultTravelQuote', e.target.value)}
+                type="number"
+                value={user.defaultTravelQuote || ""}
+                onChange={(e) =>
+                  this.setValue("defaultTravelQuote", e.target.value)
+                }
                 disabled={saving}
-                error={errorFields.includes('defaultTravelQuote')}
+                error={errorFields.includes("defaultTravelQuote")}
               />
             </Grid>
             <Grid item xs={2}>
               <TextField
-                label='יום אחרון לדיווח'
+                label="יום אחרון לדיווח"
                 fullWidth
-                type='number'
+                type="number"
                 min={0}
                 max={31}
-                value={user.lastReportDay || ''}
-                onChange={e => this.setValue('lastReportDay', e.target.value)}
+                value={user.lastReportDay || ""}
+                onChange={(e) => this.setValue("lastReportDay", e.target.value)}
                 disabled={saving}
-                error={errorFields.includes('lastReportDay')}
+                error={errorFields.includes("lastReportDay")}
               />
             </Grid>
           </Grid>
           <Grid item>
-            <Typography className={classes.title} variant='title'>
+            <Typography className={classes.title} variant="title">
               פעילויות
             </Typography>
           </Grid>
           <Grid container>
             <Grid item xs={11}>
               <MultipleSelection
-                label='לקוחות'
+                label="לקוחות"
                 disabled={saving}
                 value={selectedClients}
                 onChange={this.updateSelectedClients}
                 data={clients}
-                displayField='name'
+                displayField="name"
               />
             </Grid>
             <Grid item xs={1}>
               <Button
-                color='primary'
+                color="primary"
                 className={classes.flatButton}
                 disabled={saving}
                 onClick={this.selectAllActivities}
@@ -567,80 +616,115 @@ class User extends React.PureComponent {
             </Grid>
           </Grid>
           <Grid item>
-          <Table className={classes.table}>
-            <TableHead>
-              <TableRow>
-                <TableCell className={classes.cell}>בית ספר</TableCell>
-                <TableCell className={classes.cell}>פעילות</TableCell>
-                <TableCell className={classes.cell}>שיוך</TableCell>
-                <TableCell className={classes.cell}>תעריף שעתי</TableCell>
-                <TableCell className={classes.cell}>תעריף נסיעות</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {
-                selectedClients.map(client => (
+            <Table className={classes.table}>
+              <TableHead>
+                <TableRow>
+                  <TableCell className={classes.cell}>בית ספר</TableCell>
+                  <TableCell className={classes.cell}>פעילות</TableCell>
+                  <TableCell className={classes.cell}>שיוך</TableCell>
+                  <TableCell className={classes.cell}>תעריף שעתי</TableCell>
+                  <TableCell className={classes.cell}>תעריף נסיעות</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {selectedClients.map((client) => (
                   <React.Fragment key={client._id}>
                     {client.activities.map((activity, clientIdx) => {
-                      const idx = user.activities.findIndex(({activityId, clientId}) => activityId === activity.activityId && clientId === client._id)
-                      const userActivity = user.activities[idx]
+                      const idx = user.activities.findIndex(
+                        ({ activityId, clientId }) =>
+                          activityId === activity.activityId &&
+                          clientId === client._id
+                      );
+                      const userActivity = user.activities[idx];
                       return (
                         <TableRow key={activity.activityId}>
-                          <TableCell className={classes.cell}>{clientIdx === 0 ? client.name : ''}</TableCell>
-                          <TableCell className={classes.cell}>{activity.name}</TableCell>
+                          <TableCell className={classes.cell}>
+                            {clientIdx === 0 ? client.name : ""}
+                          </TableCell>
+                          <TableCell className={classes.cell}>
+                            {activity.name}
+                          </TableCell>
                           <TableCell className={classes.cell}>
                             <Checkbox
                               checked={!!userActivity}
-                              onChange={(e, checked) => this.handleActivityCheckbox(client._id, activity.activityId, checked)}
+                              onChange={(e, checked) =>
+                                this.handleActivityCheckbox(
+                                  client._id,
+                                  activity.activityId,
+                                  checked
+                                )
+                              }
                               disabled={saving}
                             />
                           </TableCell>
                           <TableCell className={classes.cell}>
-                            {userActivity && <TextField
-                              type='number'
-                              fullWidth
-                              value={userActivity.hourlyQuote || ''}
-                              placeholder={`${user.defaultHourlyQuote || ''}`}
-                              onChange={e => this.updateActivityField(activity.activityId, client._id, 'hourlyQuote', e.target.value)}
-                              disabled={saving}
-                              error={errorFields.includes(`activities.${idx}.hourlyQuote`)}
-                            />}
+                            {userActivity && (
+                              <TextField
+                                type="number"
+                                fullWidth
+                                value={userActivity.hourlyQuote || ""}
+                                placeholder={`${user.defaultHourlyQuote || ""}`}
+                                onChange={(e) =>
+                                  this.updateActivityField(
+                                    activity.activityId,
+                                    client._id,
+                                    "hourlyQuote",
+                                    e.target.value
+                                  )
+                                }
+                                disabled={saving}
+                                error={errorFields.includes(
+                                  `activities.${idx}.hourlyQuote`
+                                )}
+                              />
+                            )}
                           </TableCell>
                           <TableCell className={classes.cell}>
-                            {userActivity && <TextField
-                              type='number'
-                              fullWidth
-                              value={userActivity.travelQuote || ''}
-                              placeholder={`${user.defaultTravelQuote || ''}`}
-                              onChange={e => this.updateActivityField(activity.activityId, client._id, 'travelQuote', e.target.value)}
-                              disabled={saving}
-                              error={errorFields.includes(`activities.${idx}.travelQuote`)}
-                            />}
+                            {userActivity && (
+                              <TextField
+                                type="number"
+                                fullWidth
+                                value={userActivity.travelQuote || ""}
+                                placeholder={`${user.defaultTravelQuote || ""}`}
+                                onChange={(e) =>
+                                  this.updateActivityField(
+                                    activity.activityId,
+                                    client._id,
+                                    "travelQuote",
+                                    e.target.value
+                                  )
+                                }
+                                disabled={saving}
+                                error={errorFields.includes(
+                                  `activities.${idx}.travelQuote`
+                                )}
+                              />
+                            )}
                           </TableCell>
                         </TableRow>
-                      )
+                      );
                     })}
                   </React.Fragment>
-                ))
-              }
-            </TableBody>
-          </Table>
+                ))}
+              </TableBody>
+            </Table>
           </Grid>
         </Grid>
       </React.Fragment>
-    )
+    );
   }
-
 }
 
-const getFormattedDate = date => {
+const getFormattedDate = (date) => {
   if (!date) {
-    return ''
+    return "";
   }
-  const d = new Date(date)
-  const day = d.getUTCDate()
-  const month = d.getUTCMonth()+1
-  return `${d.getUTCFullYear()}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day}`
-}
+  const d = new Date(date);
+  const day = d.getUTCDate();
+  const month = d.getUTCMonth() + 1;
+  return `${d.getUTCFullYear()}-${month < 10 ? `0${month}` : month}-${
+    day < 10 ? `0${day}` : day
+  }`;
+};
 
-export default withStyles(styles)(User)
+export default withStyles(styles)(User);
