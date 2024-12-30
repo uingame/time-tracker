@@ -334,27 +334,27 @@ class AdvancedReport extends React.Component {
                   })}
                 </TableBody>
                 <TableFooter>
-                      <TableRow>
-                        <TableCell colSpan={3} />
-                        <TableCell className={classes.cell}>
-                          שעות עבודה
-                        </TableCell>
-                        <TableCell className={classes.cell}>
-                          {sumTotalHours}
-                        </TableCell>
-                        <TableCell />
-                      </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={3} />
-                        <TableCell className={classes.cell}>
-                          ימי עבודה
-                        </TableCell>
-                        <TableCell className={classes.cell}>
-                          {distinctWorkingDays}
-                        </TableCell>
-                        <TableCell />
-                      </TableRow>
-                    </TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={3} />
+                    <TableCell className={classes.cell}>
+                      שעות עבודה
+                    </TableCell>
+                    <TableCell className={classes.cell}>
+                      {sumTotalHours}
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3} />
+                    <TableCell className={classes.cell}>
+                      ימי עבודה
+                    </TableCell>
+                    <TableCell className={classes.cell}>
+                      {distinctWorkingDays}
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+                </TableFooter>
               </Table>
             </Paper>
           )}
