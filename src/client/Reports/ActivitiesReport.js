@@ -2,7 +2,8 @@ import React from 'react';
 import { map, sortBy, get } from 'lodash';
 import moment from 'moment';
 import memoizeOne from 'memoize-one';
-import { Grid, withStyles, Button, Paper, Typography } from '@material-ui/core';
+import { Grid, Button, Paper, Typography } from '@mui/material';
+import withStyles from "@mui/styles/withStyles";
 import * as timetrackingService from 'core/timetrackingService';
 import { getAllActivities } from 'core/activitiesService';
 import { getAllClients } from 'core/clientsService';
@@ -14,17 +15,18 @@ import { getAllUsers } from 'core/usersService';
 import { getReports, getFirstActivityDate } from 'core/reportsService';
 import { generateUsersReportCSV } from 'core/csvGenerator';
 
-const styles = theme => ({
+const styles = (theme) => ({
   cell: {
     fontSize: '1.25rem',
     textAlign: 'right',
-    padding: theme.spacing.unit * 1.5
+    padding: theme.spacing(1.5), // Updated spacing API
   },
   title: {
-    marginTop: theme.spacing.unit * 2,
-    marginBottom: theme.spacing.unit
-  }
+    lineHeight: '3rem',
+    fontSize: '1.2rem',
+  },
 });
+
 
 const getSortedData = memoizeOne((reports = [], orderBy, orderDirection) => {
   if (!orderBy) {
@@ -230,49 +232,53 @@ class ActivityReport extends React.Component {
     const { loading, users, months, startDate, reportsByActivity, activitiesFilter, orderBy, orderDirection, activities, clients } = this.state;
 
     return (
-      <Grid container direction='column'>
-        <Grid container spacing={8} justify='space-evenly'>
-          <Grid item xs={4}>
-            <MultipleSelection
-              label='חודש'
-              single={true}
-              disabled={loading}
-              value={startDate}
-              onChange={value => this.updateFilter('startDate', value)}
-              data={months}
-              displayField='display'
-              keyField='date'
-            />
+      <Grid container direction='column' padding={1}>
+        <Grid container justifyContent='space-between'>
+          <Grid container item md={8} gap={1}>
+            <Grid item xs={2}>
+              <MultipleSelection
+                label='חודש'
+                single={true}
+                disabled={loading}
+                value={startDate}
+                onChange={value => this.updateFilter('startDate', value)}
+                data={months}
+                displayField='display'
+                keyField='date'
+              />
+            </Grid>
+            <Grid item xs={8}>
+              <MultipleSelection
+                label='פעילויות'
+                disabled={loading}
+                value={activitiesFilter}
+                onChange={value => this.updateFilter('activitiesFilter', value)}
+                data={activities}
+                displayField='name'
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={4}>
-            <MultipleSelection
-              label='פעילויות'
-              disabled={loading}
-              value={activitiesFilter}
-              onChange={value => this.updateFilter('activitiesFilter', value)}
-              data={activities}
-              displayField='name'
-            />
-          </Grid>
-          <Grid item xs={1}>
-            <Button
-              color='primary'
-              variant='contained'
-              disabled={loading || !startDate}
-              onClick={this.load}
-            >
-              הצג
-            </Button>
-          </Grid>
-          <Grid item xs={1}>
-            <Button
-              color='primary'
-              variant='contained'
-              disabled={loading || !startDate}
-              onClick={this.downloadCSV}
-            >
-              CSV
-            </Button>
+          <Grid container item md={2} justifyContent='flex-end' alignItems='center'>
+            <Grid item md={4}>
+              <Button
+                color='primary'
+                variant='contained'
+                disabled={loading || !startDate}
+                onClick={this.load}
+              >
+                הצג
+              </Button>
+            </Grid>
+            <Grid item md={4}>
+              <Button
+                color='primary'
+                variant='contained'
+                disabled={loading || !startDate}
+                onClick={this.downloadCSV}
+              >
+                CSV
+              </Button>
+            </Grid>
           </Grid>
         </Grid>
         <Grid item>
@@ -352,6 +358,10 @@ class ActivityReport extends React.Component {
                         { content: 'שעות עבודה' },
                         { content: totalHours },
                         {},
+                        {},
+                        {},
+                        {},
+                        {},
                       ]
                     }, {
                       cells: [
@@ -360,6 +370,10 @@ class ActivityReport extends React.Component {
                         {},
                         { content: 'ימי עבודה' },
                         { content: numberOfWorkdays },
+                        {},
+                        {},
+                        {},
+                        {},
                         {},
                       ]
                     }]}

@@ -1,15 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {get, without, omit} from 'lodash'
-import withStyles from '@material-ui/core/styles/withStyles';
-import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
-import AddIcon from '@material-ui/icons/Add'
-import DownloadIcon from '@material-ui/icons/GetApp'
-
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
+import {get, without, omit, uniqBy, sumBy} from 'lodash'
+import withStyles from '@mui/styles/withStyles';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import AddIcon from '@mui/icons-material/Add'
+import DownloadIcon from '@mui/icons-material/GetApp'
 
 import ActivityIndicator from 'common/ActivityIndicator'
 import MultipleSelection from '../common/MultipleSelection'
@@ -29,34 +26,34 @@ const EXTRA_MONTHS = 1
 const NEW_PREFIX = 'new_'
 const EMPTY_PREFIX = 'empty_'
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
     width: '100%',
-    marginTop: theme.spacing.unit * 3,
+    marginTop: theme.spacing(3), // Updated spacing API
     overflowX: 'auto',
   },
   table: {
-    minWidth: 700
+    minWidth: 700,
   },
   cell: {
     fontSize: '1.25rem',
     textAlign: 'right',
-    padding: theme.spacing.unit * 1.5
+    padding: theme.spacing(1.5), // Updated spacing API
   },
   input: {
     fontSize: '1.25rem',
     direction: 'rtl',
-    marginLeft: theme.spacing.unit
+    marginLeft: theme.spacing(1), // Updated spacing API
   },
   iconInButton: {
-    marginLeft: theme.spacing.unit
+    marginLeft: theme.spacing(1), // Updated spacing API
   },
   fullWidth: {
-    width: '100%'
+    width: '100%',
   },
   csvButton: {
-    marginLeft: theme.spacing.unit,
-  }
+    marginLeft: 2,
+  },
 });
 
 let dummyIdCouter = 0
@@ -105,13 +102,13 @@ class TimeTracking extends React.Component {
   }
 
   initUser(user, disableLock) {
-    const months = getUserMonths(user, disableLock)
+    const months = getUserMonths(user, disableLock).reverse()
     this.setState({
       loading: false,
       months,
       selectedUser: user
     })
-    this.initMonth(months[months.length-1-EXTRA_MONTHS], user)
+    this.initMonth(months[0], user)
   }
 
   selectUser(e) {
@@ -141,6 +138,14 @@ class TimeTracking extends React.Component {
 
   shouldPreventEdit(report) {
     return this.state.selectedMonth.locked || this.isEmpty(report)
+  }
+
+  sumDurations(array) {
+    return sumBy(array, 'duration');
+  }
+
+  countDistinctDates(array) {
+    return uniqBy(array, 'date').length;
   }
 
   isNew(report) {
@@ -251,7 +256,13 @@ class TimeTracking extends React.Component {
 
   downloadCSV() {
     const {reports, selectedMonth: {month, year}} = this.state
-    generateTimeTrackingCSV(reports, `report-${year}-${month}.csv`)
+
+    const reportToDownload = {
+      reports,
+      totalHours: this.sumDurations(reports),
+      numberOfWorkdays: this.countDistinctDates(reports)
+    }
+    generateTimeTrackingCSV(reportToDownload, `report-${year}-${month}.csv`)
   }
 
   updateFilter(val) {
@@ -265,14 +276,17 @@ class TimeTracking extends React.Component {
     if (loading) {
       return <ActivityIndicator />
     }
+    
+    const totalHours = this.sumDurations(reports)
+    const numberOfWorkdays = this.countDistinctDates(reports)
 
     return (
-      <Grid container>
+      <Grid padding={1} container>
         <Grid container justify='space-between'>
-          <Grid container item md={10}>
+          <Grid container gap={1} item md={10}>
             <Grid item xs={2}>
               {isAdmin && <MultipleSelection
-                label='עובדים'
+                label='עובד'
                 className={classes.input}
                 disabled={loading}
                 value={selectedUser}
@@ -295,22 +309,26 @@ class TimeTracking extends React.Component {
               />
             </Grid>
           </Grid>
-          <Grid item md={2} container justify='flex-end'>
-            <Grid item>
-              {selectedMonth && (
-                <Button className={classes.csvButton} onClick={this.downloadCSV} variant="contained" color="primary">
-                  <DownloadIcon className={classes.iconInButton}/>
-                  CSV
-                </Button>
-              )}
-              {selectedMonth && !selectedMonth.locked && (
-                <Button onClick={this.addNewReport} variant="contained" color="primary">
-                  <AddIcon className={classes.iconInButton}/>
-                  דיווח חדש
-                </Button>
-              )}
+            <Grid
+              item
+              container
+              md={2}
+              gap={1}
+              justifyContent='flex-end'
+              alignItems='center'>
+                {selectedMonth && (
+                  <Button className={classes.csvButton} onClick={this.downloadCSV} variant="contained" color="primary">
+                    <DownloadIcon className={classes.iconInButton}/>
+                    CSV
+                  </Button>
+                )}
+                {selectedMonth && !selectedMonth.locked && (
+                  <Button onClick={this.addNewReport} variant="contained" color="primary">
+                    <AddIcon className={classes.iconInButton}/>
+                    דיווח חדש
+                  </Button>
+                )}
             </Grid>
-          </Grid>
         </Grid>
         <Grid item className={classes.fullWidth}>
           {loadingMonth ? <ActivityIndicator /> : (
@@ -369,6 +387,31 @@ class TimeTracking extends React.Component {
                 onSave={this.saveReport}
                 onDelete={this.deleteReport}
                 onDuplicate={this.duplicate}
+                footerData={[{
+                  cells: [
+                    {},
+                    {},
+                    {},
+                    { content: 'שעות עבודה' },
+                    { content: totalHours },
+                    {},
+                    {},
+                    {},
+                    {}
+                  ]
+                }, {
+                  cells: [
+                    {},
+                    {},
+                    {},
+                    { content: 'ימי עבודה' },
+                    { content: numberOfWorkdays },
+                    {},
+                    {},
+                    {},
+                    {}
+                  ]
+                }]}
               />
             </Paper>
           )}
@@ -390,7 +433,7 @@ function getUserMonths(user, disableLock) {
   const startDate = new Date(user.startDate)
   const firstMonth = startDate.getUTCMonth()+1
   const firstYear = startDate.getUTCFullYear()
-  const lastMonth = lastDate.getUTCMonth()+1
+  const lastMonth = lastDate.getUTCMonth()
   const lastYear = lastDate.getUTCFullYear()
   const ret = []
   for (let year = firstYear; year <= lastYear; year++) {
