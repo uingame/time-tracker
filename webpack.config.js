@@ -62,6 +62,7 @@ const common = {
   plugins: [
     new HtmlWebpackPlugin({
       template: paths.html,
+      favicon: path.join(paths.src, 'uingame_favicon.png')
     }),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
