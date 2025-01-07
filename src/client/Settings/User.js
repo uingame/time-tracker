@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { get, uniq } from "lodash";
+import moment from "moment";
 import Grid from "@mui/material/Grid";
 import withStyles from "@mui/styles/withStyles";
 import Typography from "@mui/material/Typography";
@@ -219,7 +220,7 @@ const User = ({ classes, userId, clients, onUpdate }) => {
           <TextField
             type="date"
             label="תאריך תחילת עבודה"
-            value={state.user.startDate || ""}
+            value={state.user.startDate || moment().toISOString()}
             onChange={(e) => setValue("startDate", e.target.value)}
             fullWidth
             disabled={state.saving}
@@ -387,7 +388,7 @@ const User = ({ classes, userId, clients, onUpdate }) => {
         </Button>
       </Grid>
       <Grid container justifyContent='space-between' alignItems='center'>
-        <Grid item>
+        <Grid item md={4}>
           <MultipleSelection
             label="לקוחות"
             disabled={state.saving}

@@ -25,6 +25,10 @@ const styles = (theme) => ({
     lineHeight: '3rem',
     fontSize: '1.2rem',
   },
+  tableContainer: {
+    maxWidth: 'calc(100vw - 20px)',
+    overflowX: 'auto',
+  }
 });
 
 
@@ -335,7 +339,7 @@ class UsersReport extends React.Component {
                 <Typography variant='title' gutterBottom className={classes.title}>
                   {reports[0].username}
                 </Typography>
-                <Paper>
+                <Paper className={classes.tableContainer}>
                   <EditableTable
                     data={getSortedData(reports, orderBy, orderDirection)}
                     headers={[{

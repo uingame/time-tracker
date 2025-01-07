@@ -88,14 +88,15 @@ class TimeTracking extends React.Component {
     ])
     const user = getSignedInUser()
     const users = !user.isAdmin ? null : await getAllUsers()
+
     this.setState({
       isAdmin: user.isAdmin,
       clients,
-      activities: clients.reduce((ret, client) => {
-        ret[client._id] = allActivities
-          .filter(activity => client.activities.some(({activityId}) => activityId === activity._id))
-        return ret
-      }, {}),
+      activities: clients.flatMap(client => 
+        allActivities.filter(activity =>
+          client.activities.some(({ activityId }) => activityId === activity._id)
+        )
+      ),
       users
     })
     this.initUser(user, user.isAdmin)
@@ -371,10 +372,10 @@ class TimeTracking extends React.Component {
                 }, {
                   id: 'activityId',
                   title: 'פעילות',
-                  select: ({clientId}) => activities[clientId],
+                  select: activities,
                   idField: '_id',
                   displayField: 'name',
-                  sortable: true
+                  sortable: true,
                 }, {
                   id: 'notes',
                   title: 'הערות',

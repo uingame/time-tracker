@@ -21,8 +21,9 @@ import FilterNoneIcon from '@mui/icons-material/FilterNone'
 import SaveIcon from '@mui/icons-material/Save'
 import UndoIcon from '@mui/icons-material/Undo'
 
+
 import ActivityIndicator from 'common/ActivityIndicator'
-import DayPicker from 'common/DayPicker'
+import FilterableSelect from 'common/FilterableSelect'
 
 import { MenuItem } from '@mui/material';
 
@@ -40,13 +41,14 @@ const styles = (theme) => ({
     textAlign: 'right',
     whiteSpace: 'pre-line',
     padding: theme.spacing(1.5), // Updated spacing API
-    width: '50%',
+    width: '40%',
   },
   smallCell: {
     fontSize: '1.25rem',
     textAlign: 'right',
     padding: theme.spacing(1.5), // Updated spacing API
     whiteSpace: 'nowrap',
+    minWidth: '100px'
   },
   footerCell: {
     fontSize: '1.25rem',
@@ -302,7 +304,6 @@ class _EditableRow extends React.Component {
   }
 
   updateData(key, value) {
-    console.log(key, value)
     this.setState({
       data: {
         ...this.state.data,
@@ -329,6 +330,14 @@ class _EditableRow extends React.Component {
                   type="date"
                   value={data[id]}
                   onChange={e => this.updateData(id, e.target.value.toString().split('T', 1)[0])}
+                />
+              ) : select ? (
+                <FilterableSelect
+                  value={data[id]}
+                  onChange={(value) => this.updateData(id, value)}
+                  options={selectOptions || []}
+                  idField={idField}
+                  displayField={displayField}
                 />
               ) : (
                 <TextField

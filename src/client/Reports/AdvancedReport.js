@@ -81,6 +81,7 @@ const sumOfUniqueDates = (data) => {
 
 const searchPeriodTypes = [
   { label: "חיפוש ידני", value: 0 },
+  { label: "חודש קודם", value: 1 },
   { label: "3 חודשים אחרונים", value: 3 },
   { label: "6 חודשים אחרונים", value: 6 },
   { label: "12 חודשים אחרונים", value: 12 },
