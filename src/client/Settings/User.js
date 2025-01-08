@@ -219,6 +219,7 @@ const User = ({ classes, userId, clients, onUpdate }) => {
         <Grid item xs={3}>
           <TextField
             type="date"
+            format="DD/MM/YYYY"
             label="תאריך תחילת עבודה"
             value={state.user.startDate || moment().toISOString()}
             onChange={(e) => setValue("startDate", e.target.value)}

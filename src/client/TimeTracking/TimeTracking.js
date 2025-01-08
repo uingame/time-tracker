@@ -92,10 +92,12 @@ class TimeTracking extends React.Component {
     this.setState({
       isAdmin: user.isAdmin,
       clients,
-      activities: clients.flatMap(client => 
+      activities: clients.flatMap(client =>
         allActivities.filter(activity =>
           client.activities.some(({ activityId }) => activityId === activity._id)
         )
+      ).filter((activity, index, self) =>
+        index === self.findIndex(a => a._id === activity._id)
       ),
       users
     })

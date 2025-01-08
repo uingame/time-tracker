@@ -348,6 +348,7 @@ class _EditableRow extends React.Component {
                   onChange={e => this.updateData(id, e.target.value)}
                   multiline={multiline}
                   type={type}
+                  ampm={false}
                   select={!!select}
                   error={errorFields.includes(id)}
                 >
