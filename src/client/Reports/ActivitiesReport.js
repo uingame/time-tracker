@@ -286,7 +286,7 @@ class ActivityReport extends React.Component {
             ({ reports, totalHours, numberOfWorkdays }, activityId) => (
               <React.Fragment key={activityId}>
                 <Typography variant='title' gutterBottom className={classes.title}>
-                  {reports[0].activityName}
+                  {reports[0] ? reports[0].activityName : ''}
                 </Typography>
                 <Paper>
                   <EditableTable
