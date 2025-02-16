@@ -88,6 +88,7 @@ const FilterableSelect = ({ value, onChange, options, idField, displayField }) =
           itemCount={filteredOptions.length}
           itemSize={36} // Height of each row
           width="100%"
+          direction="rtl"
         >
           {renderRow}
         </FixedSizeList>
