@@ -1,12 +1,15 @@
 import React from 'react'
-import {map, sortBy} from 'lodash'
+import {map, sortBy, get} from 'lodash'
 import moment from 'moment'
 import memoizeOne from 'memoize-one';
-import {Grid, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, Typography, TableFooter, TableSortLabel} from '@mui/material';
+import {Grid, Button, Paper, TableCell, Typography, TableSortLabel} from '@mui/material';
 import {withStyles} from '@mui/styles'
+import * as timetrackingService from 'core/timetrackingService';
 import MultipleSelection from 'common/MultipleSelection'
 import ActivityIndicator from 'common/ActivityIndicator'
-
+import EditableTable from '../common/EditableTable'
+import { getAllActivities } from 'core/activitiesService'
+import { getAllUsers } from 'core/usersService'
 import {getAllClients} from 'core/clientsService'
 import {getReports, getFirstActivityDate} from 'core/reportsService'
 import {generateClientsReportCSV} from 'core/csvGenerator'
@@ -49,6 +52,9 @@ const HeaderCell = withStyles(styles)(({classes, field, selectedField, selectedD
   </TableCell>
 ))
 
+const NEW_PREFIX = 'new_';
+let dummyIdCounter = 0;
+
 class ClientsReport extends React.Component {
 
   state = {
@@ -56,6 +62,8 @@ class ClientsReport extends React.Component {
     startDate: '',
     clients: [],
     clientsFilter: [],
+    users: [],
+    activities: [],
     months: [],
     reportsByClient: {},
     orderBy: '',
@@ -68,18 +76,22 @@ class ClientsReport extends React.Component {
   }
 
   async init() {
-    const [clients, firstDate] = await Promise.all([
+    const [users, clients, firstDate, allActivities] = await Promise.all([
+      getAllUsers(),
       getAllClients(),
-      getFirstActivityDate()
+      getFirstActivityDate(),
+      getAllActivities(),
     ])
 
     const months = makeMonthsList(firstDate)
 
     this.setState({
+      users,
       clients,
       months,
       startDate: months[months.length-1],
-      loading: false
+      loading: false,
+      activities: allActivities,
     }, this.load)
   }
 
@@ -125,9 +137,110 @@ class ClientsReport extends React.Component {
     })
   }
 
+  getReportWeekday(report) {
+    if (!get(report, 'date')) {
+      return '';
+    }
+    try {
+      return moment(report.date).format('dddd');
+    } catch (err) {
+      console.error(err);
+      return '';
+    }
+  }
+
+  async saveReport(report) {
+    console.log('start saveReport')
+    const { _id, ...reportData } = report;
+
+    const isNew = report._id.startsWith(NEW_PREFIX);
+
+    console.log('isNew', isNew)
+
+    const updatedReport = isNew
+      ? await timetrackingService.addTimeTrackingReport(reportData)
+      : await timetrackingService.updateTimeTrackingReport(_id, reportData);
+
+    this.setState(prevState => {
+      const updatedClientReports = prevState.reportsByClient[updatedReport.clientId].reports.map(r => r._id === _id ? updatedReport : r);
+
+      const updatedReportsByClient = {
+        ...prevState.reportsByClient,
+        [updatedReport.clientId]: {
+          ...prevState.reportsByClient[updatedReport.clientId],
+          reports: [...updatedClientReports],
+          totalHours: updatedClientReports.reduce((sum, r) => sum + r.duration, 0)
+        }
+      };
+
+      return {
+        ...prevState,
+        reportsByClient: updatedReportsByClient
+      };
+    });
+  }
+
+  async deleteReport(report) {
+    await timetrackingService.deleteTimeTrackingReport(report._id);
+
+    this.setState(prevState => {
+      const updatedClientReports = prevState.reportsByClient[report.clientId].reports.filter(r => r._id !== report._id);
+
+      const updatedReportsByClient = {
+        ...prevState.reportsByClient,
+        [report.clientId]: {
+          ...prevState.reportsByClient[report.clientId],
+          reports: updatedClientReports,
+          totalHours: updatedClientReports.reduce((sum, r) => sum + r.duration, 0)
+        }
+      };
+
+      return {
+        ...prevState,
+        reportsByClient: updatedReportsByClient
+      };
+    });
+  }
+
+  async duplicateReport(report) {
+    // Clone the report and assign a new unique ID with NEW_PREFIX
+    const newId = NEW_PREFIX + (dummyIdCounter++);
+    const clonedReport = {
+      ...report,
+      _id: newId
+    };
+
+    this.setState(prevState => {
+      const clientReports = prevState.reportsByClient[report.clientId].reports;
+      const reportIndex = clientReports.findIndex(r => r._id === report._id);
+
+      // Insert the cloned report at the next index
+      const updatedClientReports = [
+        ...clientReports.slice(0, reportIndex + 1),
+        clonedReport,
+        ...clientReports.slice(reportIndex + 1)
+      ];
+
+      const updatedReportsByClient = {
+        ...prevState.reportsByClient,
+        [report.clientId]: {
+          ...prevState.reportsByClient[report.clientId],
+          reports: updatedClientReports,
+          totalHours: updatedClientReports.reduce((sum, r) => sum + r.duration, 0)
+        }
+      };
+
+      return {
+        ...prevState,
+        reportsByClient: updatedReportsByClient
+      };
+    });
+  }
+
+
   render() {
     const {classes} = this.props
-    const {loading, months, startDate, reportsByClient, clients, clientsFilter, orderBy, orderDirection} = this.state
+    const {loading, months, startDate, reportsByClient, users, clients, activities, clientsFilter, orderBy, orderDirection} = this.state
     return (
       <Grid container direction='column' padding={1}>
         <Grid container justify='space-between'>
@@ -183,70 +296,95 @@ class ClientsReport extends React.Component {
             ({reports, totalHours, numberOfWorkdays}, clientId) => (
               <React.Fragment key={clientId}>
                 <Typography variant='title' gutterBottom className={classes.title}>
-                  {reports[0].clientName}
+                  {reports[0] ? reports[0].clientName : ''}
                 </Typography>
-                <Paper>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <HeaderCell field='date' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>תאריך</HeaderCell>
-                        <HeaderCell field='weekday' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>יום</HeaderCell>
-                        <HeaderCell field='startTime' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>זמן התחלה</HeaderCell>
-                        <HeaderCell field='endTime' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>זמן סיום</HeaderCell>
-                        <HeaderCell field='duration' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>מס שעות</HeaderCell>
-                        <HeaderCell field='username' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>עובד</HeaderCell>
-                        <HeaderCell field='activityName' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>פעילות</HeaderCell>
-                        <HeaderCell field='notes' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>הערות</HeaderCell>
-                        <HeaderCell field='modifiedAt' selectedField={orderBy} selectedDirection={orderDirection} onClick={this.applySort}>זמן עדכון</HeaderCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {getSortedData(reports, orderBy, orderDirection).map(report => {
-                        const m = moment(report.date)
-                        return (
-                          <TableRow key={report._id}>
-                            <TableCell className={classes.cell}>{m.format('D/MM/YYYY')}</TableCell>
-                            <TableCell className={classes.cell}>{m.format('dddd')}</TableCell>
-                            <TableCell className={classes.cell}>{report.startTime}</TableCell>
-                            <TableCell className={classes.cell}>{report.endTime}</TableCell>
-                            <TableCell className={classes.cell}>{report.duration}</TableCell>
-                            <TableCell className={classes.cell}>{report.username}</TableCell>
-                            <TableCell className={classes.cell}>{report.activityName}</TableCell>
-                            <TableCell className={classes.cell}>{report.notes}</TableCell>
-                            <TableCell className={classes.cell}>{moment(report.modifiedAt).format('HH:mm D/MM/YYYY')}</TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                    <TableFooter>
-                      <TableRow>
-                        <TableCell colSpan={3} />
-                        <TableCell className={classes.cell}>
-                          שעות עבודה
-                        </TableCell>
-                        <TableCell className={classes.cell}>
-                          {totalHours}
-                        </TableCell>
-                        <TableCell />
-                        <TableCell />
-                        <TableCell />
-                        <TableCell />
-                      </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={3} />
-                        <TableCell className={classes.cell}>
-                          ימי עבודה
-                        </TableCell>
-                        <TableCell className={classes.cell}>
-                          {numberOfWorkdays}
-                        </TableCell>
-                        <TableCell />
-                        <TableCell />
-                        <TableCell />
-                        <TableCell />
-                      </TableRow>
-                    </TableFooter>
-                  </Table>
+                <Paper className={classes.tableContainer}>
+                  <EditableTable
+                    data={getSortedData(reports, orderBy, orderDirection)}
+                    headers={[{
+                      id: 'date',
+                      title: 'תאריך',
+                      type: 'date',
+                      focus: true,
+                      sortable: true
+                    }, {
+                      id: 'weekday',
+                      title: 'יום',
+                      type: 'computed',
+                      transform: this.getReportWeekday,
+                      sortable: true
+                    }, {
+                      id: 'startTime',
+                      title: 'זמן התחלה',
+                      type: 'time',
+                      sortable: true
+                    }, {
+                      id: 'endTime',
+                      title: 'זמן סיום',
+                      type: 'time',
+                      sortable: true
+                    }, {
+                      id: 'duration',
+                      title: 'מס שעות',
+                      type: 'number',
+                      sortable: true
+                    },    {
+                      id: 'userId',
+                      title: 'עובד',
+                      select: users,
+                      idField: '_id',
+                      displayField: 'displayName',
+                      sortable: true
+                    }, {
+                      id: 'activityId',
+                      title: 'פעילות',
+                      select: activities,
+                      idField: '_id',
+                      displayField: 'name',
+                      sortable: true
+                    }, {
+                      id: 'notes',
+                      title: 'הערות',
+                      multiline: true,
+                      wide: true
+                    }, {
+                      id: 'modifiedAt',
+                      title: 'זמן עדכון',
+                      type: 'computed',
+                      transform: ({modifiedAt}) => moment(modifiedAt).format('HH:mm D/MM/YYYY'),
+                      sortable: true
+                    }]}
+                    onSave={this.saveReport}
+                    onDelete={this.deleteReport}
+                    onDuplicate={this.duplicateReport}
+                    footerData={[{
+                      cells: [
+                        {},
+                        {},
+                        {},
+                        { content: 'שעות עבודה' },
+                        { content: totalHours },
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                      ]
+                    }, {
+                      cells: [
+                        {},
+                        {},
+                        {},
+                        { content: 'ימי עבודה' },
+                        { content: numberOfWorkdays },
+                        {},
+                        {},
+                        {},
+                        {},
+                        {},
+                      ]
+                    }]}
+                  />
                 </Paper>
               </React.Fragment>
             )
