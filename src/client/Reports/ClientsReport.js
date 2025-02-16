@@ -2,7 +2,7 @@ import React from 'react'
 import {map, sortBy, get} from 'lodash'
 import moment from 'moment'
 import memoizeOne from 'memoize-one';
-import {Grid, Button, Paper, TableCell, Typography, TableSortLabel} from '@mui/material';
+import {Grid, Button, Paper, Typography} from '@mui/material';
 import {withStyles} from '@mui/styles'
 import * as timetrackingService from 'core/timetrackingService';
 import MultipleSelection from 'common/MultipleSelection'
@@ -39,18 +39,6 @@ const getSortedData = memoizeOne((reports = [], orderBy, orderDirection) => {
   }
   return sortedData
 })
-
-const HeaderCell = withStyles(styles)(({classes, field, selectedField, selectedDirection, onClick, children}) => (
-  <TableCell className={classes.cell}>
-    <TableSortLabel
-      active={selectedField === field}
-      direction={selectedDirection}
-      onClick={() => onClick && onClick(field)}
-    >
-      {children}
-    </TableSortLabel>
-  </TableCell>
-))
 
 const NEW_PREFIX = 'new_';
 let dummyIdCounter = 0;
